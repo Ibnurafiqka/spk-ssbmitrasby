@@ -1,0 +1,4 @@
+{
+    "builds": [{ "src": "public/build/**", "use": "@vercel/static" }],
+    "outputDirectory": "public"
+}
