@@ -1,4 +1,23 @@
 {
-    "builds": [{ "src": "public/build/**", "use": "@vercel/static" }],
-    "outputDirectory": "public"
+    "version": 3,
+    "builds": [
+        {
+            "src": "api/index.php",
+            "use": "@vercel/php"
+        },
+        {
+            "src": "public/build/**/*",
+            "use": "@vercel/static"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/build/(.*)",
+            "dest": "/public/build/$1"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/api/index.php"
+        }
+    ]
 }
