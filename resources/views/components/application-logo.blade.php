@@ -1,0 +1,1 @@
+<img src="{{asset('images/football.png')  }}" alt="Logo" style="width: 40px; height: 40px;">
