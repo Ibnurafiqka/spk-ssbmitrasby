@@ -1,38 +1,377 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="mb-5 font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard Admin') }}
-        </h2>
-    </x-slot>
+  <x-slot name="header">
+      <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+          {{ __('Dashboard Admin - Sistem Seleksi Pemain Sepak Bola') }}
+      </h2>
+  </x-slot>
 
-    <!-- Card Info Metode ARAS -->
-    <div class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-lg mb-6 overflow-hidden">
-      <div class="p-6">
-          <div class="flex items-start gap-4">
-              <div class="p-3 bg-white/20 rounded-lg">
-                  <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                  </svg>
+  <div class="py-6">
+      <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+          
+          <!-- Welcome Section -->
+          <div class="mb-8">
+              <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+                  <div class="flex items-center justify-between">
+                      <div>
+                          <h1 class="text-2xl md:text-3xl font-bold mb-2">Selamat Datang di Sistem Seleksi Pemain</h1>
+                          <p class="text-blue-100 opacity-90 max-w-3xl">
+                              Sistem pendukung keputusan untuk menyeleksi dan meranking pemain sepak bola berbasis metode ARAS
+                          </p>
+                      </div>
+                      <div class="hidden md:block">
+                          <div class="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
+                              <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                              </svg>
+                          </div>
+                      </div>
+                  </div>
               </div>
-              <div class="flex-1">
-                  <h3 class="text-2xl font-bold mb-2">Metode ARAS</h3>
-                  <p class="text-blue-100 mb-4">Additive Ratio Assessment - Sistem Pendukung Keputusan berbasis perbandingan rasio untuk menentukan ranking atlet terbaik</p>
-                  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                      <div class="bg-white/10 rounded-lg p-3">
-                          <p class="font-semibold mb-1">Langkah 1</p>
-                          <p class="text-xs text-blue-100">Matrix Keputusan</p>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              @php
+                  $totalAtlet = \App\Models\Atlet::count();
+                  $totalKriteria = \App\Models\Kriteria::count();
+                  $totalPenilaian = \App\Models\Penilaian::count();
+                  $totalUsers = \App\Models\User::count();
+                  $atletLengkap = \App\Models\Atlet::whereHas('penilaians', function($q) {
+                      $q->whereIn('kriteria_id', \App\Models\Kriteria::pluck('id'));
+                  }, '=', \App\Models\Kriteria::count())->count();
+                  
+                  // Data untuk chart - Pendaftaran Atlet per Bulan
+                  $atletPerBulan = \App\Models\Atlet::selectRaw('MONTH(created_at) as bulan, COUNT(*) as total')
+                      ->whereYear('created_at', date('Y'))
+                      ->groupBy('bulan')
+                      ->orderBy('bulan')
+                      ->get()
+                      ->pluck('total', 'bulan')
+                      ->toArray();
+                  
+                  // Data untuk chart - Penilaian per Bulan
+                  $penilaianPerBulan = \App\Models\Penilaian::selectRaw('MONTH(created_at) as bulan, COUNT(*) as total')
+                      ->whereYear('created_at', date('Y'))
+                      ->groupBy('bulan')
+                      ->orderBy('bulan')
+                      ->get()
+                      ->pluck('total', 'bulan')
+                      ->toArray();
+                  
+                  // Data untuk pie chart - Status Penilaian Atlet
+                  $atletBelumDinilai = $totalAtlet - $atletLengkap;
+                  $atletSebagian = \App\Models\Atlet::whereHas('penilaians')
+                      ->whereDoesntHave('penilaians', function($q) {
+                          $q->whereIn('kriteria_id', \App\Models\Kriteria::pluck('id'));
+                      }, '=', \App\Models\Kriteria::count())
+                      ->count();
+              @endphp
+
+              <!-- Total Users -->
+              <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-gray-500">
+                  <div class="flex items-center justify-between">
+                      <div>
+                          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Users</p>
+                          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $totalUsers }}</p>
                       </div>
-                      <div class="bg-white/10 rounded-lg p-3">
-                          <p class="font-semibold mb-1">Langkah 2</p>
-                          <p class="text-xs text-blue-100">Normalisasi Matrix</p>
+                      <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                          <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                          </svg>
                       </div>
-                      <div class="bg-white/10 rounded-lg p-3">
-                          <p class="font-semibold mb-1">Langkah 3</p>
-                          <p class="text-xs text-blue-100">Matrix Terbobot</p>
+                  </div>
+                  <div class="mt-2">
+                      <span class="text-xs text-gray-500 dark:text-gray-400">Pengguna terdaftar</span>
+                  </div>
+              </div>
+
+              <!-- Total Atlet -->
+              <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-gray-500">
+                  <div class="flex items-center justify-between">
+                      <div>
+                          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Atlet</p>
+                          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $totalAtlet }}</p>
                       </div>
-                      <div class="bg-white/10 rounded-lg p-3">
-                          <p class="font-semibold mb-1">Langkah 4</p>
-                          <p class="text-xs text-blue-100">Hitung Ranking</p>
+                      <div class="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
+                          <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          </svg>
+                      </div>
+                  </div>
+                  <div class="mt-2">
+                      <span class="text-xs text-gray-500 dark:text-gray-400">Atlet terdaftar</span>
+                  </div>
+              </div>
+
+              <!-- Kriteria Penilaian -->
+              <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-gray-500">
+                  <div class="flex items-center justify-between">
+                      <div>
+                          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Kriteria Penilaian</p>
+                          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $totalKriteria }}</p>
+                      </div>
+                      <div class="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                          <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          </svg>
+                      </div>
+                  </div>
+                  <div class="mt-2">
+                      <span class="text-xs text-gray-500 dark:text-gray-400">Parameter penilaian</span>
+                  </div>
+              </div>
+
+              <!-- Atlet Lengkap -->
+              <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-gray-500">
+                  <div class="flex items-center justify-between">
+                      <div>
+                          <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Atlet Siap Dievaluasi</p>
+                          <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">{{ $atletLengkap }}</p>
+                      </div>
+                      <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                          <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          </svg>
+                      </div>
+                  </div>
+                  <div class="mt-2">
+                      <span class="text-xs text-gray-500 dark:text-gray-400">Penilaian lengkap</span>
+                  </div>
+              </div>
+          </div>
+
+          <!-- Charts Section -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+              
+              <!-- Atlet Registration Chart -->
+              <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                  <div class="flex justify-between items-center mb-6">
+                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                          Pendaftaran Atlet
+                      </h3>
+                      <span class="text-sm text-gray-500 dark:text-gray-400">
+                          Tahun {{ date('Y') }}
+                      </span>
+                  </div>
+                  <div id="atlet-chart"></div>
+              </div>
+
+              <!-- Status Penilaian Chart -->
+              <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                  <div class="flex justify-between items-center mb-6">
+                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                          Status Penilaian Atlet
+                      </h3>
+                      <span class="text-sm text-gray-500 dark:text-gray-400">
+                          Total: {{ $totalAtlet }} atlet
+                      </span>
+                  </div>
+                  <div id="status-chart"></div>
+              </div>
+          </div>
+
+          <!-- Main Content Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              
+              <!-- Left Column - Metode ARAS -->
+              <div class="lg:col-span-2 space-y-8">
+                  
+                  <!-- Metode ARAS Card -->
+                  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
+                      <div class="bg-gradient-to-r from-blue-600 to-purple-700 p-6 text-white">
+                          <div class="flex items-center gap-4">
+                              <div class="p-3 bg-white/20 rounded-lg">
+                                  <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                  </svg>
+                              </div>
+                              <div class="flex-1">
+                                  <h3 class="text-2xl font-bold mb-2">Metode ARAS (Additive Ratio Assessment)</h3>
+                                  <p class="text-green-100 opacity-90">
+                                      Sistem pendukung keputusan berbasis perbandingan rasio untuk menentukan ranking pemain sepak bola terbaik
+                                  </p>
+                              </div>
+                          </div>
+                      </div>
+                      
+                      <div class="p-6">
+                          <div class="prose dark:prose-invert max-w-none">
+                              <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">📊 Tentang Metode ARAS</h4>
+                              <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                  ARAS adalah metode Multiple Attribute Decision Making (MADM) yang menggunakan konsep 
+                                  <strong>rasio aditif</strong> untuk menentukan alternatif terbaik. Dalam konteks seleksi pemain sepak bola, 
+                                  metode ini membantu mengevaluasi pemain berdasarkan berbagai kriteria teknikal, fisik, dan mental.
+                              </p>
+
+                              <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">🔢 Langkah-langkah Perhitungan</h4>
+                              <div class="space-y-4">
+                                  <div class="flex gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                      <div class="flex-shrink-0 w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                                      <div>
+                                          <h5 class="font-semibold text-gray-900 dark:text-white">Matrix Keputusan</h5>
+                                          <p class="text-sm text-gray-600 dark:text-gray-300">Membuat matrix nilai pemain untuk setiap kriteria penilaian</p>
+                                      </div>
+                                  </div>
+                                  <div class="flex gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                      <div class="flex-shrink-0 w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                                      <div>
+                                          <h5 class="font-semibold text-gray-900 dark:text-white">Normalisasi Matrix</h5>
+                                          <p class="text-sm text-gray-600 dark:text-gray-300">Menormalisasi nilai untuk membandingkan kriteria yang berbeda skala</p>
+                                      </div>
+                                  </div>
+                                  <div class="flex gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                      <div class="flex-shrink-0 w-8 h-8 bg-yellow-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                                      <div>
+                                          <h5 class="font-semibold text-gray-900 dark:text-white">Matrix Terbobot</h5>
+                                          <p class="text-sm text-gray-600 dark:text-gray-300">Mengalikan nilai normalisasi dengan bobot setiap kriteria</p>
+                                      </div>
+                                  </div>
+                                  <div class="flex gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                                      <div class="flex-shrink-0 w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold">4</div>
+                                      <div>
+                                          <h5 class="font-semibold text-gray-900 dark:text-white">Perhitungan Ranking</h5>
+                                          <p class="text-sm text-gray-600 dark:text-gray-300">Menghitung nilai utility degree untuk menentukan peringkat pemain</p>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+
+                  <!-- Quick Actions -->
+                  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">🚀 Akses Cepat</h3>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <a href="{{ route('penilaian.index') }}" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition group">
+                              <div class="flex items-center gap-3">
+                                  <div class="p-2 bg-blue-100 dark:bg-blue-800 rounded-lg">
+                                      <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                      </svg>
+                                  </div>
+                                  <div>
+                                      <h4 class="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">Input Penilaian</h4>
+                                      <p class="text-sm text-gray-600 dark:text-gray-400">Masukkan data penilaian pemain</p>
+                                  </div>
+                              </div>
+                          </a>
+                          <a href="{{ route('perangkingan.index') }}" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition group">
+                              <div class="flex items-center gap-3">
+                                  <div class="p-2 bg-green-100 dark:bg-green-800 rounded-lg">
+                                      <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                      </svg>
+                                  </div>
+                                  <div>
+                                      <h4 class="font-semibold text-gray-900 dark:text-white group-hover:text-green-600 dark:group-hover:text-green-400">Proses Perangkingan</h4>
+                                      <p class="text-sm text-gray-600 dark:text-gray-400">Hitung ranking pemain dengan ARAS</p>
+                                  </div>
+                              </div>
+                          </a>
+                          <a href="{{ route('atlet.index') }}" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition group">
+                              <div class="flex items-center gap-3">
+                                  <div class="p-2 bg-purple-100 dark:bg-purple-800 rounded-lg">
+                                      <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                      </svg>
+                                  </div>
+                                  <div>
+                                      <h4 class="font-semibold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400">Kelola Atlet</h4>
+                                      <p class="text-sm text-gray-600 dark:text-gray-400">Tambah/edit data pemain</p>
+                                  </div>
+                              </div>
+                          </a>
+                          <a href="{{ route('kriteria.index') }}" class="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition group">
+                              <div class="flex items-center gap-3">
+                                  <div class="p-2 bg-yellow-100 dark:bg-yellow-800 rounded-lg">
+                                      <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                      </svg>
+                                  </div>
+                                  <div>
+                                      <h4 class="font-semibold text-gray-900 dark:text-white group-hover:text-yellow-600 dark:group-hover:text-yellow-400">Kelola Kriteria</h4>
+                                      <p class="text-sm text-gray-600 dark:text-gray-400">Atur parameter penilaian</p>
+                                  </div>
+                              </div>
+                          </a>
+                      </div>
+                  </div>
+              </div>
+
+              <!-- Right Column - Recent Activity & System Info -->
+              <div class="space-y-8">
+                  
+                  <!-- Recent Activity -->
+                  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">🕐 Aktivitas Terbaru</h3>
+                      <div class="space-y-4">
+                          @php
+                              $recentPenilaians = \App\Models\Penilaian::with(['atlet', 'kriteria'])
+                                  ->latest()
+                                  ->take(5)
+                                  ->get();
+                          @endphp
+
+                          @forelse($recentPenilaians as $penilaian)
+                          <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                              <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                  {{ strtoupper(substr($penilaian->atlet->nama, 0, 2)) }}
+                              </div>
+                              <div class="flex-1">
+                                  <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                      {{ $penilaian->atlet->nama }}
+                                  </p>
+                                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                                      {{ $penilaian->kriteria->nama_kriteria }} • {{ number_format($penilaian->nilai, 1) }}
+                                  </p>
+                              </div>
+                              <div class="text-xs text-gray-400">
+                                  {{ $penilaian->updated_at->diffForHumans() }}
+                              </div>
+                          </div>
+                          @empty
+                          <div class="text-center py-4 text-gray-500 dark:text-gray-400">
+                              <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                              </svg>
+                              <p>Belum ada aktivitas</p>
+                          </div>
+                          @endforelse
+                      </div>
+                  </div>
+
+                  <!-- System Status -->
+                  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">🔧 Status Sistem</h3>
+                      <div class="space-y-3">
+                          <div class="flex items-center justify-between">
+                              <span class="text-sm text-gray-600 dark:text-gray-400">Database</span>
+                              <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-xs font-medium">
+                                  <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                                  Connected
+                              </span>
+                          </div>
+                          <div class="flex items-center justify-between">
+                              <span class="text-sm text-gray-600 dark:text-gray-400">Metode ARAS</span>
+                              <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 rounded-full text-xs font-medium">
+                                  <span class="w-2 h-2 bg-green-500 rounded-full mr-1"></span>
+                                  Ready
+                              </span>
+                          </div>
+                          <div class="flex items-center justify-between">
+                              <span class="text-sm text-gray-600 dark:text-gray-400">Data Kriteria</span>
+                              <span class="inline-flex items-center px-2 py-1 {{ $totalKriteria > 0 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' }} rounded-full text-xs font-medium">
+                                  <span class="w-2 h-2 {{ $totalKriteria > 0 ? 'bg-green-500' : 'bg-yellow-500' }} rounded-full mr-1"></span>
+                                  {{ $totalKriteria > 0 ? 'Configured' : 'Setup Required' }}
+                              </span>
+                          </div>
+                          <div class="flex items-center justify-between">
+                              <span class="text-sm text-gray-600 dark:text-gray-400">Data Atlet</span>
+                              <span class="inline-flex items-center px-2 py-1 {{ $totalAtlet > 0 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' }} rounded-full text-xs font-medium">
+                                  <span class="w-2 h-2 {{ $totalAtlet > 0 ? 'bg-green-500' : 'bg-yellow-500' }} rounded-full mr-1"></span>
+                                  {{ $totalAtlet > 0 ? 'Available' : 'No Data' }}
+                              </span>
+                          </div>
                       </div>
                   </div>
               </div>
@@ -40,357 +379,129 @@
       </div>
   </div>
 
-    {{-- <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
-                </div>
-            </div>
-        </div>
-    </div> --}}
-    
-<div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-  
-
-<div class="max-w-sm w-full bg-white rounded-lg shadow-sm dark:bg-gray-800 p-4 md:p-6">
-    <div class="flex justify-between">
-      <div>
-        <h5 class="leading-none text-3xl font-bold text-gray-900 dark:text-white pb-2">32.4k</h5>
-        <p class="text-base font-normal text-gray-500 dark:text-gray-400">Users this week</p>
-      </div>
-      <div
-        class="flex items-center px-2.5 py-0.5 text-base font-semibold text-green-500 dark:text-green-500 text-center">
-        12%
-        <svg class="w-3 h-3 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 14">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13V1m0 0L1 5m4-4 4 4"/>
-        </svg>
-      </div>
-    </div>
-    <div id="area-chart"></div>
-    <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
-      <div class="flex justify-between items-center pt-5">
-        <!-- Button -->
-        <button
-          id="dropdownDefaultButton"
-          data-dropdown-toggle="lastDaysdropdown"
-          data-dropdown-placement="bottom"
-          class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
-          type="button">
-          Last 7 days
-          <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-          </svg>
-        </button>
-        <!-- Dropdown menu -->
-        <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700">
-            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-              <li>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
-              </li>
-              <li>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a>
-              </li>
-              <li>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 7 days</a>
-              </li>
-              <li>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 30 days</a>
-              </li>
-              <li>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 90 days</a>
-              </li>
-            </ul>
-        </div>
-        <a
-          href="#"
-          class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
-          Users Report
-          <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-          </svg>
-        </a>
-      </div>
-    </div>
-</div>
-
-  
-<div class="max-w-sm w-full bg-white rounded-lg shadow-sm dark:bg-gray-800 p-4 md:p-6">
-
-    <div class="flex justify-between items-start w-full">
-        <div class="flex-col items-center">
-          <div class="flex items-center mb-1">
-              <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white me-1">Website traffic</h5>
-              <svg data-popover-target="chart-info" data-popover-placement="bottom" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white cursor-pointer ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm0 16a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm1-5.034V12a1 1 0 0 1-2 0v-1.418a1 1 0 0 1 1.038-.999 1.436 1.436 0 0 0 1.488-1.441 1.501 1.501 0 1 0-3-.116.986.986 0 0 1-1.037.961 1 1 0 0 1-.96-1.037A3.5 3.5 0 1 1 11 11.466Z"/>
-              </svg>
-              <div data-popover id="chart-info" role="tooltip" class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-xs opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
-                  <div class="p-3 space-y-2">
-                      <h3 class="font-semibold text-gray-900 dark:text-white">Activity growth - Incremental</h3>
-                      <p>Report helps navigate cumulative growth of community activities. Ideally, the chart should have a growing trend, as stagnating chart signifies a significant decrease of community activity.</p>
-                      <h3 class="font-semibold text-gray-900 dark:text-white">Calculation</h3>
-                      <p>For each date bucket, the all-time volume of activities is calculated. This means that activities in period n contain all activities up to period n, plus the activities generated by your community in period.</p>
-                      <a href="#" class="flex items-center font-medium text-blue-600 dark:text-blue-500 dark:hover:text-blue-600 hover:text-blue-700 hover:underline">Read more <svg class="w-2 h-2 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-                </svg></a>
-              </div>
-              <div data-popper-arrow></div>
-          </div>
-        </div>
-        <button id="dateRangeButton" data-dropdown-toggle="dateRangeDropdown" data-dropdown-ignore-click-outside-class="datepicker" type="button" class="inline-flex items-center text-blue-700 dark:text-blue-600 font-medium hover:underline">31 Nov - 31 Dev <svg class="w-3 h-3 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-          </svg>
-        </button>
-        <div id="dateRangeDropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-80 lg:w-96 dark:bg-gray-700 dark:divide-gray-600">
-            <div class="p-3" aria-labelledby="dateRangeButton">
-              <div date-rangepicker datepicker-autohide class="flex items-center">
-                  <div class="relative">
-                    <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
-                        </svg>
-                    </div>
-                    <input name="start" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Start date">
-                  </div>
-                  <span class="mx-2 text-gray-500 dark:text-gray-400">to</span>
-                  <div class="relative">
-                    <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                        <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z"/>
-                        </svg>
-                    </div>
-                    <input name="end" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="End date">
-                </div>
-              </div>
-            </div>
-        </div>
-      </div>
-      <div class="flex justify-end items-center">
-        <button id="widgetDropdownButton" data-dropdown-toggle="widgetDropdown" data-dropdown-placement="bottom" type="button"  class="inline-flex items-center justify-center text-gray-500 w-8 h-8 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 rounded-lg text-sm"><svg class="w-3.5 h-3.5 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 3">
-            <path d="M2 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Zm6.041 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM14 0a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3Z"/>
-          </svg><span class="sr-only">Open dropdown</span>
-        </button>
-        <div id="widgetDropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700">
-            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="widgetDropdownButton">
-              <li>
-                <a href="#" class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><svg class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 21 21">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.418 17.861 1 20l2.139-6.418m4.279 4.279 10.7-10.7a3.027 3.027 0 0 0-2.14-5.165c-.802 0-1.571.319-2.139.886l-10.7 10.7m4.279 4.279-4.279-4.279m2.139 2.14 7.844-7.844m-1.426-2.853 4.279 4.279"/>
-                  </svg>Edit widget
-                </a>
-              </li>
-              <li>
-                <a href="#" class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><svg class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M14.707 7.793a1 1 0 0 0-1.414 0L11 10.086V1.5a1 1 0 0 0-2 0v8.586L6.707 7.793a1 1 0 1 0-1.414 1.414l4 4a1 1 0 0 0 1.416 0l4-4a1 1 0 0 0-.002-1.414Z"/>
-                    <path d="M18 12h-2.55l-2.975 2.975a3.5 3.5 0 0 1-4.95 0L4.55 12H2a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2Zm-3 5a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/>
-                  </svg>Download data
-                </a>
-              </li>
-              <li>
-                <a href="#" class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><svg class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5.953 7.467 6.094-2.612m.096 8.114L5.857 9.676m.305-1.192a2.581 2.581 0 1 1-5.162 0 2.581 2.581 0 0 1 5.162 0ZM17 3.84a2.581 2.581 0 1 1-5.162 0 2.581 2.581 0 0 1 5.162 0Zm0 10.322a2.581 2.581 0 1 1-5.162 0 2.581 2.581 0 0 1 5.162 0Z"/>
-                  </svg>Add to repository
-                </a>
-              </li>
-              <li>
-                <a href="#" class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"><svg class="w-3 h-3 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 18 20">
-                    <path d="M17 4h-4V2a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v2H1a1 1 0 0 0 0 2h1v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1a1 1 0 1 0 0-2ZM7 2h4v2H7V2Zm1 14a1 1 0 1 1-2 0V8a1 1 0 0 1 2 0v8Zm4 0a1 1 0 0 1-2 0V8a1 1 0 0 1 2 0v8Z"/>
-                  </svg>Delete widget
-                </a>
-              </li>
-            </ul>
-      </div>
-    </div>
-    </div>
-  
-    <!-- Line Chart -->
-    <div class="py-6" id="pie-chart"></div>
-  
-    <div class="grid grid-cols-1 items-center border-gray-200 border-t dark:border-gray-700 justify-between">
-      <div class="flex justify-between items-center pt-5">
-        <!-- Button -->
-        <button
-          id="dropdownDefaultButton"
-          data-dropdown-toggle="lastDaysdropdown"
-          data-dropdown-placement="bottom"
-          class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-900 text-center inline-flex items-center dark:hover:text-white"
-          type="button">
-          Last 7 days
-          <svg class="w-2.5 m-2.5 ms-1.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-          </svg>
-        </button>
-        <div id="lastDaysdropdown" class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700">
-            <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-              <li>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Yesterday</a>
-              </li>
-              <li>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Today</a>
-              </li>
-              <li>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 7 days</a>
-              </li>
-              <li>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 30 days</a>
-              </li>
-              <li>
-                <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Last 90 days</a>
-              </li>
-            </ul>
-        </div>
-        <a
-          href="#"
-          class="uppercase text-sm font-semibold inline-flex items-center rounded-lg text-blue-600 hover:text-blue-700 dark:hover:text-blue-500  hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700 px-3 py-2">
-          Traffic analysis
-          <svg class="w-2.5 h-2.5 ms-1.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-          </svg>
-        </a>
-      </div>
-    </div>
-</div>
-
   <!-- Tambahkan CDN ApexCharts -->
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-<script>
-  
-const options = {
-  chart: {
-    height: "100%",
-    maxWidth: "100%",
-    type: "area",
-    fontFamily: "Inter, sans-serif",
-    dropShadow: {
-      enabled: false,
-    },
-    toolbar: {
-      show: false,
-    },
-  },
-  tooltip: {
-    enabled: true,
-    x: {
-      show: false,
-    },
-  },
-  fill: {
-    type: "gradient",
-    gradient: {
-      opacityFrom: 0.55,
-      opacityTo: 0,
-      shade: "#1C64F2",
-      gradientToColors: ["#1C64F2"],
-    },
-  },
-  dataLabels: {
-    enabled: false,
-  },
-  stroke: {
-    width: 6,
-  },
-  grid: {
-    show: false,
-    strokeDashArray: 4,
-    padding: {
-      left: 2,
-      right: 2,
-      top: 0
-    },
-  },
-  series: [
-    {
-      name: "New users",
-      data: [6500, 6418, 6456, 6526, 6356, 6456],
-      color: "#1A56DB",
-    },
-  ],
-  xaxis: {
-    categories: ['01 February', '02 February', '03 February', '04 February', '05 February', '06 February', '07 February'],
-    labels: {
-      show: false,
-    },
-    axisBorder: {
-      show: false,
-    },
-    axisTicks: {
-      show: false,
-    },
-  },
-  yaxis: {
-    show: false,
-  },
-}
+  <script>
+      document.addEventListener('DOMContentLoaded', function() {
+          // Data dari PHP
+          const atletData = @json($atletPerBulan);
+          const penilaianData = @json($penilaianPerBulan);
+          
+          // Chart Pendaftaran Atlet
+          const atletChartOptions = {
+              chart: {
+                  height: 320,
+                  type: "line",
+                  fontFamily: "Inter, sans-serif",
+                  toolbar: {
+                      show: false,
+                  },
+              },
+              series: [
+                  {
+                      name: "Pendaftaran Atlet",
+                      data: Array.from({length: 12}, (_, i) => atletData[i+1] || 0),
+                      color: "#1C64F2",
+                  },
+                  {
+                      name: "Penilaian",
+                      data: Array.from({length: 12}, (_, i) => penilaianData[i+1] || 0),
+                      color: "#16BDCA",
+                  }
+              ],
+              stroke: {
+                  width: [3, 3],
+                  curve: "smooth"
+              },
+              xaxis: {
+                  categories: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+                  axisBorder: {
+                      show: false,
+                  },
+                  axisTicks: {
+                      show: false,
+                  },
+              },
+              grid: {
+                  show: true,
+                  borderColor: "#E5E7EB",
+                  strokeDashArray: 4,
+                  padding: {
+                      top: 0,
+                      right: 0,
+                      bottom: 0,
+                      left: 0
+                  },
+              },
+              legend: {
+                  position: "top",
+              },
+              yaxis: {
+                  min: 0,
+              }
+          };
 
-if (document.getElementById("area-chart") && typeof ApexCharts !== 'undefined') {
-  const chart = new ApexCharts(document.getElementById("area-chart"), options);
-  chart.render();
-}
+          if (document.getElementById("atlet-chart") && typeof ApexCharts !== 'undefined') {
+              const chart = new ApexCharts(document.getElementById("atlet-chart"), atletChartOptions);
+              chart.render();
+          }
 
+          // Chart Status Penilaian
+          const statusChartOptions = {
+              series: [{{ $atletLengkap }}, {{ $atletSebagian }}, {{ $atletBelumDinilai }}],
+              colors: ["#1C64F2", "#16BDCA", "#9061F9"],
+              chart: {
+                  height: 320,
+                  type: "donut",
+                  fontFamily: "Inter, sans-serif",
+              },
+              stroke: {
+                  colors: ["white"],
+                  width: 2,
+              },
+              plotOptions: {
+                  pie: {
+                      donut: {
+                          size: '65%',
+                          labels: {
+                              show: true,
+                              total: {
+                                  show: true,
+                                  label: 'Total Atlet',
+                                  color: '#6B7280',
+                                  formatter: function (w) {
+                                      return w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+                                  }
+                              }
+                          }
+                      }
+                  }
+              },
+              labels: ["Lengkap", "Sebagian", "Belum Dinilai"],
+              dataLabels: {
+                  enabled: true,
+                  style: {
+                      fontFamily: "Inter, sans-serif",
+                  },
+              },
+              legend: {
+                  position: "bottom",
+                  fontFamily: "Inter, sans-serif",
+              },
+              yaxis: {
+                  labels: {
+                      formatter: function (value) {
+                          return value
+                      },
+                  },
+              },
+          };
 
-const getChartOptions = () => {
-  return {
-    series: [52.8, 26.8, 20.4],
-    colors: ["#1C64F2", "#16BDCA", "#9061F9"],
-    chart: {
-      height: 420,
-      width: "100%",
-      type: "pie",
-    },
-    stroke: {
-      colors: ["white"],
-      lineCap: "",
-    },
-    plotOptions: {
-      pie: {
-        labels: {
-          show: true,
-        },
-        size: "100%",
-        dataLabels: {
-          offset: -25
-        }
-      },
-    },
-    labels: ["Direct", "Organic search", "Referrals"],
-    dataLabels: {
-      enabled: true,
-      style: {
-        fontFamily: "Inter, sans-serif",
-      },
-    },
-    legend: {
-      position: "bottom",
-      fontFamily: "Inter, sans-serif",
-    },
-    yaxis: {
-      labels: {
-        formatter: function (value) {
-          return value + "%"
-        },
-      },
-    },
-    xaxis: {
-      labels: {
-        formatter: function (value) {
-          return value  + "%"
-        },
-      },
-      axisTicks: {
-        show: false,
-      },
-      axisBorder: {
-        show: false,
-      },
-    },
-  }
-}
-
-if (document.getElementById("pie-chart") && typeof ApexCharts !== 'undefined') {
-  const chart = new ApexCharts(document.getElementById("pie-chart"), getChartOptions());
-  chart.render();
-}
-
-</script>
-
+          if (document.getElementById("status-chart") && typeof ApexCharts !== 'undefined') {
+              const chart = new ApexCharts(document.getElementById("status-chart"), statusChartOptions);
+              chart.render();
+          }
+      });
+  </script>
 </x-app-layout>

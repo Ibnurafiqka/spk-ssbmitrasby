@@ -78,16 +78,7 @@
                 <span class="flex-1 ms-3 whitespace-nowrap">Laporan</span>
              </a>
           </li>
-          <!-- Riwayat Perubahan -->
-          <li>
-             <a href="{{ route('riwayat.index') }}" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ request()->routeIs('laporan.*') ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
-               <svg class="w-6 h-6 text-gray-500 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                  <path fill-rule="evenodd" d="M20 10H4v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8ZM9 13v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
-                  <path d="M2 6a2 2 0 0 1 2-2h16a2 2 0 1 1 0 4H4a2 2 0 0 1-2-2Z"/>
-                </svg>                 
-                <span class="flex-1 ms-3 whitespace-nowrap">Riwayat Aktivitas</span>
-             </a>
-          </li>
+          
           <!-- Kelola User (Admin Only) -->
             @if(Auth::user()->role === 'admin')
                 <li>
@@ -98,6 +89,16 @@
                         <span class="flex-1 ms-3 whitespace-nowrap">Kelola User</span>
                     </a>
                 </li>
+                
+                <!-- Riwayat Perubahan -->
+                <li>
+                  <a href="{{ route('riwayat.index') }}" class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group {{ request()->routeIs('laporan.*') ? 'bg-gray-100 dark:bg-gray-700' : '' }}">
+                     <svg class="shrink-0 w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm11-4a1 1 0 1 0-2 0v4a1 1 0 0 0 .293.707l3 3a1 1 0 0 0 1.414-1.414L13 11.586V8Z" clip-rule="evenodd"/>
+                      </svg>                                     
+                     <span class="flex-1 ms-3 whitespace-nowrap">Riwayat Aktivitas</span>
+                  </a>
+               </li>
             @endif
        </ul>
     </div>

@@ -34,7 +34,7 @@
                     $aktivitasHariIni = $penilaians->where('updated_at', '>=', \Carbon\Carbon::today())->count();
                 @endphp
 
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-l-4 border-blue-500">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-gray-500">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Aktivitas</p>
@@ -48,7 +48,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-l-4 border-green-500">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-gray-500">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Aktivitas Hari Ini</p>
@@ -62,7 +62,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-l-4 border-purple-500">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-gray-500">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Atlet</p>
@@ -76,7 +76,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-l-4 border-yellow-500">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-gray-500">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Kriteria</p>
@@ -138,7 +138,7 @@
                                     <th scope="col" class="px-6 py-3 text-center">Nilai</th>
                                     <th scope="col" class="px-6 py-3 text-center">Jenis</th>
                                     <th scope="col" class="px-6 py-3 text-center">Tanggal</th>
-                                    
+                                    {{-- <th scope="col" class="px-6 py-3 text-center">Aksi</th> --}}
                                 </tr>
                             </thead>
                             <tbody>
@@ -146,13 +146,13 @@
                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
                                         <div class="flex items-center gap-2">
-                                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white text-xs font-bold">
                                                 {{ strtoupper(substr($penilaian->atlet->nama, 0, 2)) }}
                                             </div>
                                             <div>
                                                 <div class="font-semibold">{{ $penilaian->atlet->nama }}</div>
                                                 <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                    {{ $penilaian->atlet->cabang_olahraga }} • {{ $penilaian->atlet->umur }} th
+                                                    {{ $penilaian->atlet->umur }} th
                                                 </div>
                                             </div>
                                         </div>
@@ -183,7 +183,9 @@
                                             {{ $penilaian->updated_at->diffForHumans() }}
                                         </div>
                                     </td>
-                                    
+                                    <td class="px-6 py-4 text-center">
+                                        
+                                    </td>
                                 </tr>
                                 @empty
                                 <tr>

@@ -198,7 +198,7 @@
                                     <td class="px-6 py-4">{{ $index + 1 }}</td>
                                     <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
                                         <div class="flex items-center gap-2">
-                                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white text-xs font-bold">
                                                 {{ strtoupper(substr($atlet->nama, 0, 2)) }}
                                             </div>
                                             {{ $atlet->nama }}

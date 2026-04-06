@@ -40,7 +40,7 @@
                     <!-- Tambah User-->
                     <div class="flex justify-end mb-4">
                         <a href="{{ route('users.create') }}" 
-                           class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 
+                           class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 
                                   text-white text-sm font-medium rounded-lg transition duration-150 ease-in-out">
                             <svg class="w-5 h-5 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" 
@@ -52,11 +52,11 @@
                     
                     <!-- Stats -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 mt-4">
-                        <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-gray-500">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm text-blue-600 dark:text-blue-400 mb-1">Total User</p>
-                                    <p class="text-2xl font-bold text-blue-700 dark:text-blue-300">{{ $users->total() }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Total User</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-300">{{ $users->total() }}</p>
                                 </div>
                                 <div class="p-3 bg-blue-100 dark:bg-blue-800 rounded-lg">
                                     <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
@@ -65,11 +65,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-gray-500">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm text-purple-600 dark:text-purple-400 mb-1">Admin</p>
-                                    <p class="text-2xl font-bold text-purple-700 dark:text-purple-300">{{ $users->where('role', 'admin')->count() }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Admin</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-300">{{ $users->where('role', 'admin')->count() }}</p>
                                 </div>
                                 <div class="p-3 bg-purple-100 dark:bg-purple-800 rounded-lg">
                                     <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
@@ -78,11 +78,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-gray-500">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm text-green-600 dark:text-green-400 mb-1">Pelatih</p>
-                                    <p class="text-2xl font-bold text-green-700 dark:text-green-300">{{ $users->where('role', 'pelatih')->count() }}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Pelatih</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-gray-300">{{ $users->where('role', 'pelatih')->count() }}</p>
                                 </div>
                                 <div class="p-3 bg-green-100 dark:bg-green-800 rounded-lg">
                                     <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
@@ -112,9 +112,19 @@
                                     <td class="px-6 py-4">{{ $users->firstItem() + $index }}</td>
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                                                {{ strtoupper(substr($user->name, 0, 2)) }}
-                                            </div>
+                                            @if($user->role == 'admin')
+                                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold">
+                                                    {{ strtoupper(substr($user->name, 0, 2)) }}
+                                                </div>
+                                            @elseif($user->role == 'pelatih')
+                                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-bold">
+                                                    {{ strtoupper(substr($user->name, 0, 2)) }}
+                                                </div>
+                                            @else
+                                                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-500 to-gray-600 flex items-center justify-center text-white font-bold">
+                                                    {{ strtoupper(substr($user->name, 0, 2)) }}
+                                                </div>
+                                            @endif
                                             <div>
                                                 <div class="font-medium text-gray-900 dark:text-white">
                                                     {{ $user->name }}
@@ -127,7 +137,7 @@
                                     </td>
                                     <td class="px-6 py-4">{{ $user->email }}</td>
                                     <td class="px-6 py-4">
-                                        <span class="px-3 py-1 text-xs font-semibold rounded-full {{ $user->role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800' }}">
+                                        <span class="px-3 py-1 text-xs font-semibold rounded-full {{ $user->role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
                                             {{ ucfirst($user->role) }}
                                         </span>
                                     </td>
