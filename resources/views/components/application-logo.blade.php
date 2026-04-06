@@ -1,1 +1,3 @@
-<img src="{{asset('images/football.png')  }}" alt="Logo" style="width: 40px; height: 40px;">
+@if(auth()->check())
+    <img src="{{ asset('images/logo-baru.jpg') }}" alt="Logo" style="width: 60px; height: 60px; margin-right: 1rem;">
+@endif

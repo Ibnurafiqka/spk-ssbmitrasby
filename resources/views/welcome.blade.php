@@ -47,7 +47,7 @@
                 </div>
             </nav>
 
-            <section class="bg-white py-8 antialiased dark:bg-gray-900 md:py-16">
+            <section class="bg-white py-8 antialiased dark:bg-gray-900 md:py-2">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
                     <div class="grid md:grid-cols-2 gap-12 items-center">
                         <!-- Left Content -->
@@ -107,11 +107,11 @@
                                     <div class="text-sm text-gray-600 dark:text-gray-400">Pemain</div>
                                 </div>
                                 <div>
-                                    <div class="text-2xl font-bold text-gray-900 dark:text-white">8</div>
+                                    <div class="text-2xl font-bold text-gray-900 dark:text-white">9</div>
                                     <div class="text-sm text-gray-600 dark:text-gray-400">Kriteria</div>
                                 </div>
                                 <div>
-                                    <div class="text-2xl font-bold text-gray-900 dark:text-white">100%</div>
+                                    <div class="text-2xl font-bold text-gray-900 dark:text-white">85%</div>
                                     <div class="text-sm text-gray-600 dark:text-gray-400">Akurat</div>
                                 </div>
                             </div>
@@ -135,7 +135,7 @@
             <!-- Footer -->
             <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-6">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-500 dark:text-gray-400">
-                    <p>SPK ARAS - Sistem Pendukung Keputusan Penilaian Atlet &copy; {{ date('Y') }}</p>
+                    <p>SPK ARAS - Sistem Pendukung Keputusan Penilaian Atlet SSB Mitra Surabaya &copy; {{ date('Y') }}</p>
                     <p class="mt-1">Laravel v{{ Illuminate\Foundation\Application::VERSION }} | PHP v{{ PHP_VERSION }}</p>
                 </div>
             </footer>

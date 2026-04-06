@@ -182,7 +182,11 @@ class LaporanController extends Controller
         // Generate nama file
         $namaFile = 'Laporan_Individu_' . str_replace(' ', '_', $atlet->nama) . '_' . date('Y-m-d-His') . '.pdf';
         
-        // Download PDF
-        return $pdf->download($namaFile);
+        if (request('action') == 'download') {
+            return $pdf->download($namaFile);
+        }
+        
+        // Preview PDF di browser
+        return $pdf->stream($namaFile);
     }
 }
