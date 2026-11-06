@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rapor Perkembangan Atlet - {{ $atlet->nama }}</title>
+    <title>Rapor Individu Atlet</title>
     <style>
         * {
             box-sizing: border-box;
@@ -32,7 +32,7 @@
             height: 68%;
             background: url("data:image/jpeg;base64,{{ base64_encode(file_get_contents(public_path('images/logo-baru.jpg'))) }}") no-repeat center center;
             background-size: contain;
-            opacity: 0.06;
+            opacity: 0.10;
             z-index: 50;
             pointer-events: none;
         }
@@ -180,6 +180,7 @@
 
         .signature-table {
             margin-top: 24px;
+            page-break-inside: avoid;
         }
 
         .signature-table td {
@@ -206,22 +207,17 @@
             text-align: center;
             color: #374151;
         }
+
+        .page-break {
+            page-break-before: always;
+        }
     </style>
 </head>
 
 <body>
     @php
         $tanggalCetak = date('d F Y');
-        $nomorLaporan = 'RPT/' . date('Y') . '/' . str_pad($atlet->id, 4, '0', STR_PAD_LEFT);
-        $predikat = 'Perlu Pembinaan';
-
-        if ($hasilAtlet['Ki'] >= 0.8) {
-            $predikat = 'Sangat Baik';
-        } elseif ($hasilAtlet['Ki'] >= 0.6) {
-            $predikat = 'Baik';
-        } elseif ($hasilAtlet['Ki'] >= 0.4) {
-            $predikat = 'Cukup';
-        }
+        $nomorLaporan = 'RPT/IND/' . date('Y') . '/' . str_pad($atlet->id, 4, '0', STR_PAD_LEFT);
     @endphp
 
     <div class="page">
@@ -239,121 +235,108 @@
             </tr>
         </table>
 
-        <div class="report-title">Rapor Hasil Evaluasi Atlet</div>
+        <div class="report-title">Laporan Rapor Individu Atlet</div>
         <div class="report-subtitle">Tahun Penilaian {{ date('Y') }}</div>
 
         <div class="table-box">
-            <div class="section-title">Identitas Atlet</div>
+            <div class="section-title">Informasi Atlet</div>
             <table class="identity-table">
                 <tr>
-                    <td class="label">Nama Atlet</td>
-                    <td class="separator">:</td>
-                    <td>{{ $atlet->nama }}</td>
-                    <td class="label">Nomor Rapor</td>
+                    <td class="label">Nomor Laporan</td>
                     <td class="separator">:</td>
                     <td>{{ $nomorLaporan }}</td>
-                </tr>
-                <tr>
                     <td class="label">Cabang Olahraga</td>
                     <td class="separator">:</td>
                     <td>{{ $atlet->cabang_olahraga }}</td>
-                    <td class="label">Umur</td>
-                    <td class="separator">:</td>
-                    <td>{{ $atlet->umur }} Tahun</td>
                 </tr>
                 <tr>
                     <td class="label">Tanggal Cetak</td>
                     <td class="separator">:</td>
                     <td>{{ $tanggalCetak }}</td>
-                    <td class="label">Peringkat</td>
+                    <td class="label">Orang Tua / Wali</td>
                     <td class="separator">:</td>
-                    <td>{{ $hasilAtlet['ranking'] }} dari {{ count($hasilPerangkingan) }} atlet</td>
+                    <td>{{ $atlet->orangTua?->user?->name ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Nama Lengkap</td>
+                    <td class="separator">:</td>
+                    <td class="font-bold">{{ $atlet->nama }}</td>
+                    <td class="label">Umur</td>
+                    <td class="separator">:</td>
+                    <td>{{ $atlet->umur }} Tahun</td>
+                </tr>
+                <tr>
+                    <td class="label">Jenis Kelamin</td>
+                    <td class="separator">:</td>
+                    <td>{{ $atlet->jenis_kelamin_lengkap }}</td>
+                    <td class="label">Posisi Dominan</td>
+                    <td class="separator">:</td>
+                    <td>{{ $atlet->posisi_label }}</td>
                 </tr>
             </table>
         </div>
 
         <div class="table-box">
-            <div class="section-title">Ringkasan Hasil Penilaian</div>
+            <div class="section-title">Hasil Rekomendasi Penilaian</div>
             <table class="summary-table">
                 <tr>
-                    <td class="label">Nilai Utility (Ki)</td>
+                    <td class="label">Posisi Rekomendasi</td>
                     <td class="separator">:</td>
-                    <td>{{ number_format($hasilAtlet['Ki'], 4) }}</td>
-                    <td class="label">Skor Akhir</td>
+                    <td class="font-bold" style="text-transform: uppercase;">{{ ucfirst($rekomendasi['posisi']) }}</td>
+                    <td class="label">Skor Evaluasi (Ki)</td>
                     <td class="separator">:</td>
-                    <td>{{ number_format($hasilAtlet['Ki'] * 100, 2) }}</td>
-                </tr>
-                <tr>
-                    <td class="label">Predikat</td>
-                    <td class="separator">:</td>
-                    <td>{{ $predikat }}</td>
-                    <td class="label">Jumlah Peserta Dinilai</td>
-                    <td class="separator">:</td>
-                    <td>{{ count($hasilPerangkingan) }} atlet</td>
+                    <td class="font-bold">{{ number_format($rekomendasi['skor'], 4) }}</td>
                 </tr>
             </table>
         </div>
 
         <div class="table-box">
-            <div class="section-title">Nilai Per Kriteria</div>
+            <div class="section-title">Detail Nilai Per Kriteria</div>
             <table class="score-table">
                 <thead>
                     <tr>
                         <th style="width: 8%;">No</th>
                         <th style="width: 14%;">Kode</th>
                         <th>Kriteria</th>
-                        <th style="width: 12%;">Jenis</th>
-                        <th style="width: 12%;">Bobot</th>
-                        <th style="width: 14%;">Nilai</th>
-                        <th style="width: 16%;">Kategori</th>
+                        <th style="width: 15%;">Jenis</th>
+                        <th style="width: 15%;">Bobot (%)</th>
+                        <th style="width: 15%;">Nilai Atual</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($kriterias as $index => $kriteria)
-                        @php
-                            $nilai = $nilaiAtlet['C' . $kriteria->id] ?? 0;
-                            $nilaiMaks = 0;
-
-                            foreach ($matrixKeputusan as $row) {
-                                if ($row['atlet'] && isset($row['C' . $kriteria->id])) {
-                                    $nilaiMaks = max($nilaiMaks, $row['C' . $kriteria->id]);
-                                }
-                            }
-
-                            $persentase = $nilaiMaks > 0 ? ($nilai / $nilaiMaks) * 100 : 0;
-                            $kategori = 'Perlu Pembinaan';
-
-                            if ($persentase >= 80) {
-                                $kategori = 'Sangat Baik';
-                            } elseif ($persentase >= 60) {
-                                $kategori = 'Baik';
-                            } elseif ($persentase >= 40) {
-                                $kategori = 'Cukup';
-                            }
+                    @php $totalBobot = 0; @endphp
+                    @forelse($kriterias as $index => $kriteria)
+                        @php 
+                            $bobotAktual = $kriteria->getBobotByPosisi($atlet->posisi);
+                            $totalBobot += $bobotAktual; 
                         @endphp
                         <tr>
                             <td class="text-center">{{ $index + 1 }}</td>
                             <td class="text-center font-bold">{{ $kriteria->kode_kriteria }}</td>
                             <td>{{ $kriteria->nama_kriteria }}</td>
                             <td class="text-center">{{ ucfirst($kriteria->jenis) }}</td>
-                            <td class="text-center">{{ number_format($kriteria->bobot, 0) }}%</td>
-                            <td class="text-center">{{ number_format($nilai, 2) }}</td>
-                            <td class="text-center">{{ $kategori }}</td>
+                            <td class="text-center">{{ number_format($bobotAktual, 0) }}%</td>
+                            <td class="text-center">{{ number_format(optional($nilaiMap->get($kriteria->id))->nilai ?? 0, 2) }}</td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr><td colspan="6" class="text-center">Belum ada data kriteria.</td></tr>
+                    @endforelse
+                    <tr>
+                        <td colspan="4" class="text-right font-bold">TOTAL BOBOT POSISI <span style="text-transform: uppercase;">{{ $atlet->posisi_label }}</span></td>
+                        <td class="text-center font-bold">{{ $totalBobot }}%</td>
+                        <td class="text-center" style="background:#e5e7eb;"></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
 
         <div class="table-box">
-            <div class="section-title">Catatan Pelatih</div>
+            <div class="section-title">Kesimpulan</div>
             <div class="notes">
-                Berdasarkan hasil evaluasi metode ARAS, atlet <span class="font-bold">{{ $atlet->nama }}</span>
-                memperoleh skor akhir <span class="font-bold">{{ number_format($hasilAtlet['Ki'] * 100, 2) }}</span>
-                dengan predikat <span class="font-bold">{{ $predikat }}</span>. Hasil ini menunjukkan bahwa atlet
-                berada pada peringkat <span class="font-bold">{{ $hasilAtlet['ranking'] }}</span> dari
-                <span class="font-bold">{{ count($hasilPerangkingan) }}</span> atlet yang dinilai. Rapor ini
-                menjadi dasar pelatih dalam menetapkan program latihan lanjutan dan evaluasi perkembangan berikutnya.
+                Berdasarkan hasil rekam medis dan evaluasi tes fisik maupun keahlian, atlet atas nama <span class="font-bold">{{ $atlet->nama }}</span> 
+                mendapatkan nilai kalkulasi terbaik pada posisi <span class="font-bold" style="text-transform: uppercase;">{{ ucfirst($rekomendasi['posisi']) }}</span> 
+                dengan perolehan skor akhir (Keputusan Sᵢ / Kᵢ) sebesar <span class="font-bold">{{ number_format($rekomendasi['skor'], 4) }}</span>. 
+                Hasil rapor individu ini sah diterbitkan untuk dijadikan acuan pembinaan dan komunikasi evaluasi kepada wali murid/orang tua.
             </div>
         </div>
 
@@ -365,15 +348,15 @@
                     <div class="signature-name">.................................</div>
                 </td>
                 <td>
-                    Mengetahui,<br>Pelatih Pendamping
+                    Mengetahui,<br>Orang Tua / Wali
                     <div class="signature-space"></div>
-                    <div class="signature-name">.................................</div>
+                    <div class="signature-name">{{ $atlet->orangTua?->user?->name ?? '.................................' }}</div>
                 </td>
             </tr>
         </table>
 
         <div class="footer-note">
-            Dokumen ini diterbitkan oleh Sekolah Sepak Bola Mitra Surabaya sebagai rapor evaluasi resmi atlet.
+            Dokumen ini diterbitkan oleh Sekolah Sepak Bola Mitra Surabaya sebagai laporan individu atlet resmi.
         </div>
     </div>
 </body>

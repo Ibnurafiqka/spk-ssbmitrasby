@@ -1,548 +1,472 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LAPORAN RESULTAN EVALUASI ATLET</title>
-    <link href="https://fonts.googleapis.com/css2?family=Times+New+Roman&display=swap" rel="stylesheet">
+    <title>Laporan Hasil Perangkingan</title>
     <style>
-        /* Reset dan Base Styles */
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
         }
-        
+
+        @page {
+            margin: 22mm 16mm 22mm 16mm;
+        }
+
         body {
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 12pt;
-            line-height: 1.5;
-            color: #000000;
-            background-color: #ffffff;
-            padding: 15mm;
-            max-width: 210mm;
-            margin: 0 auto;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 12px;
+            line-height: 1.45;
+            color: #111827;
+            margin: 0;
+            position: relative;
         }
-        
-        /* Header dan Kop Surat */
-        .letterhead {
-            border-bottom: 2px solid #000000;
-            padding-bottom: 8mm;
-            margin-bottom: 12mm;
-            text-align: center;
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 23%;
+            left: 16%;
+            width: 68%;
+            height: 68%;
+            background: url("data:image/jpeg;base64,{{ base64_encode(file_get_contents(public_path('images/logo-baru.jpg'))) }}") no-repeat center center;
+            background-size: contain;
+            opacity: 0.10;
+            z-index: 50;
+            pointer-events: none;
         }
-        
-        .institution-name {
-            font-size: 16pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 3mm;
+
+        .page {
+            width: 100%;
         }
-        
-        .institution-address {
-            font-size: 11pt;
-            margin-bottom: 3mm;
-        }
-        
-        .document-title {
-            font-size: 14pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-top: 5mm;
-            border-top: 1px solid #000000;
-            border-bottom: 1px solid #000000;
-            padding: 3mm 0;
-            letter-spacing: 0.5px;
-        }
-        
-        /* Informasi Laporan */
-        .report-info {
-            margin-bottom: 8mm;
-            border: 1px solid #000000;
-            padding: 4mm;
-        }
-        
-        .info-row {
-            display: flex;
-            margin-bottom: 2mm;
-        }
-        
-        .info-label {
-            width: 40mm;
-            font-weight: bold;
-        }
-        
-        .info-value {
-            flex: 1;
-        }
-        
-        /* Section Header */
-        .section-header {
-            font-size: 12pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin: 10mm 0 5mm 0;
-            padding-bottom: 2mm;
-            border-bottom: 2px solid #000000;
-            letter-spacing: 0.5px;
-            page-break-after: avoid;
-        }
-        
-        .subsection-header {
-            font-size: 11pt;
-            font-weight: bold;
-            margin: 8mm 0 4mm 0;
-            padding-left: 3mm;
-            border-left: 3mm solid #000000;
-        }
-        
-        /* Tabel */
-        .data-table {
+
+        .header-table,
+        .identity-table,
+        .summary-table,
+        .score-table,
+        .signature-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 8mm;
-            font-size: 10pt;
         }
-        
-        .data-table th {
-            background-color: #f5f5f5;
-            border: 1px solid #000000;
-            padding: 3mm 2mm;
-            text-align: center;
+
+        .header-table {
+            border-bottom: 3px solid #111827;
+            margin-bottom: 12px;
+        }
+
+        .header-table td {
+            vertical-align: middle;
+            padding-bottom: 10px;
+        }
+
+        .logo-cell {
+            width: 90px;
+        }
+
+        .logo-cell img {
+            width: 74px;
+            height: 74px;
+            object-fit: contain;
+        }
+
+        .school-name {
+            font-size: 18px;
             font-weight: bold;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        
-        .data-table td {
-            border: 1px solid #000000;
-            padding: 2mm;
+            letter-spacing: 0.6px;
             text-align: center;
+        }
+
+        .school-subtitle {
+            font-size: 13px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 2px;
+        }
+
+        .school-address,
+        .school-phone {
+            font-size: 11px;
+            text-align: center;
+            margin-top: 2px;
+        }
+
+        .report-title {
+            margin: 14px 0 10px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .report-subtitle {
+            text-align: center;
+            font-size: 12px;
+            margin-bottom: 12px;
+        }
+
+        .table-box {
+            margin-bottom: 12px;
+            page-break-inside: avoid;
+        }
+
+        .identity-table td,
+        .summary-table td,
+        .score-table th,
+        .score-table td,
+        .signature-table td {
+            border: 1px solid #111827;
+            padding: 6px 8px;
+        }
+
+        .identity-table td,
+        .summary-table td {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .label {
+            width: 26%;
+            font-weight: bold;
+        }
+
+        .separator {
+            width: 4%;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            background: #e5e7eb;
+            border: 1px solid #111827;
+            border-bottom: 0;
+            padding: 6px 8px;
+        }
+
+        .score-table th {
+            text-align: center;
+            font-weight: bold;
+            background: #dbe4f0;
+        }
+
+        .score-table td {
+            background: rgba(255, 255, 255, 0.92);
             vertical-align: middle;
         }
-        
-        .data-table .text-left {
-            text-align: left;
+
+        .text-center {
+            text-align: center;
         }
-        
-        .data-table .ranking-cell {
+
+        .text-right {
+            text-align: right;
+        }
+
+        .font-bold {
             font-weight: bold;
-            font-size: 11pt;
         }
-        
-        .ranking-1 {
-            background-color: #e8e8e8 !important;
+
+        .notes {
+            border: 1px solid #111827;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.92);
+            text-align: justify;
         }
-        
-        .ranking-2 {
-            background-color: #f0f0f0 !important;
-        }
-        
-        .ranking-3 {
-            background-color: #f8f8f8 !important;
-        }
-        
-        /* Matrix Table */
-        .matrix-table {
-            font-size: 9pt;
+
+        .signature-table {
+            margin-top: 24px;
             page-break-inside: avoid;
         }
-        
-        .matrix-table td {
-            padding: 1.5mm;
-        }
-        
-        .alternate-row {
-            background-color: #fafafa;
-        }
-        
-        /* Summary Box */
-        .summary-box {
-            border: 2px solid #000000;
-            padding: 6mm;
-            margin: 10mm 0;
-            background-color: #f9f9f9;
-            page-break-inside: avoid;
-        }
-        
-        .summary-title {
-            font-size: 12pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 4mm;
+
+        .signature-table td {
+            width: 50%;
             text-align: center;
+            vertical-align: top;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.9);
         }
-        
-        .summary-content {
-            text-align: center;
-            font-size: 11pt;
+
+        .signature-space {
+            height: 52px;
         }
-        
-        .summary-value {
-            font-size: 20pt;
-            font-weight: bold;
-            margin: 3mm 0;
-        }
-        
-        /* Footer */
-        .document-footer {
-            font-size: 9pt;
-            text-align: center;
-            margin-top: 15mm;
-            padding-top: 3mm;
-            border-top: 1px solid #000000;
-            color: #666666;
-        }
-        
-        /* Tanda Tangan */
-        .signature-section {
-            margin-top: 20mm;
-        }
-        
-        .signature-grid {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15mm;
-        }
-        
-        .signature-box {
-            text-align: center;
-            width: 70mm;
-        }
-        
-        .signature-line {
-            width: 50mm;
-            height: 1px;
-            background-color: #000000;
-            margin: 12mm auto 2mm;
-        }
-        
+
         .signature-name {
             font-weight: bold;
-            margin-top: 2mm;
+            text-decoration: underline;
+            text-transform: uppercase;
         }
-        
-        .signature-title {
-            font-size: 10pt;
+
+        .footer-note {
+            margin-top: 8px;
+            font-size: 10px;
+            text-align: center;
+            color: #374151;
         }
-        
-        /* Utility Classes */
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .text-bold { font-weight: bold; }
-        .mb-2 { margin-bottom: 2mm; }
-        .mb-3 { margin-bottom: 3mm; }
-        .mb-5 { margin-bottom: 5mm; }
-        .mt-3 { margin-top: 3mm; }
-        .mt-5 { margin-top: 5mm; }
+
         .page-break {
             page-break-before: always;
         }
-        
-        /* Printing Optimizations */
-        @media print {
-            body {
-                padding: 12mm;
-                font-size: 11pt;
-            }
-            .page-break {
-                page-break-before: always;
-                margin-top: 15mm;
-            }
-            .section-header {
-                page-break-after: avoid;
-            }
-            .data-table {
-                page-break-inside: avoid;
-            }
-        }
     </style>
 </head>
+
 <body>
-    <!-- Kop Surat -->
-    <div class="letterhead">
-        <div class="institution-name">Akademi Sepak Bola Indonesia</div>
-        <div class="institution-address">
-            Jl. Pendidikan No. 123, Jakarta Pusat 10110 • Telp: (021) 123-4567
-        </div>
-        <div class="institution-address">
-            Website: www.ars-academy.id • Email: info@ars-academy.id
-        </div>
-        
-        <div class="document-title">
-            Laporan Hasil Evaluasi Komprehensif Atlet
-        </div>
-    </div>
+    @php
+        $tanggalCetak = date('d F Y');
+        $nomorLaporan = 'RPT/ALL/' . date('Y') . '/' . str_pad(count($hasilPerangkingan), 3, '0', STR_PAD_LEFT);
+    @endphp
 
-    <!-- Informasi Laporan -->
-    <div class="report-info">
-        <div class="info-row">
-            <div class="info-label">Nomor Laporan</div>
-            <div class="info-value">: REV/{{ date('Y') }}/{{ date('m') }}/{{ str_pad(count($hasilPerangkingan), 3, '0', STR_PAD_LEFT) }}</div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">Tanggal Cetak</div>
-            <div class="info-value">: {{ date('d F Y, H:i') }}</div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">Metode Evaluasi</div>
-            <div class="info-value">: ARAS (Additive Ratio Assessment)</div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">Jumlah Peserta</div>
-            <div class="info-value">: {{ count($hasilPerangkingan) }} Atlet</div>
-        </div>
-        <div class="info-row">
-            <div class="info-label">Jumlah Kriteria</div>
-            <div class="info-value">: {{ $kriterias->count() }} Parameter</div>
-        </div>
-    </div>
-
-    <!-- Ringkasan Hasil -->
-    <div class="summary-box">
-        <div class="summary-title">RINGKASAN HASIL EVALUASI</div>
-        <div class="summary-content">
-            <div class="summary-value">PEMERINGKATAN {{ count($hasilPerangkingan) }} ATLET</div>
-            <div class="mb-3">Berdasarkan analisis komprehensif dengan metode ARAS</div>
-            <div class="mb-2">
-                <strong>Atlet Terbaik:</strong> {{ $hasilPerangkingan[0]['atlet']->nama }}
-            </div>
-            <div>
-                Skor: <strong>{{ number_format($hasilPerangkingan[0]['Ki'] * 100, 1) }}</strong> • 
-                Nilai Utility: <strong>{{ number_format($hasilPerangkingan[0]['Ki'], 4) }}</strong>
-            </div>
-        </div>
-    </div>
-
-    <!-- 1. Data Kriteria -->
-    <div class="section-header">1. Parameter Evaluasi</div>
-    <table class="data-table">
-        <thead>
+    <div class="page">
+        <table class="header-table">
             <tr>
-                <th width="10%">Kode</th>
-                <th width="40%">Parameter Evaluasi</th>
-                <th width="15%">Bobot (%)</th>
-                <th width="15%">Bobot (Desimal)</th>
-                <th width="20%">Jenis</th>
+                <td class="logo-cell">
+                    <img src="data:image/jpeg;base64,{{ base64_encode(file_get_contents(public_path('images/logo-baru.jpg'))) }}"
+                        alt="Logo Sekolah Sepak Bola">
+                </td>
+                <td style="padding-right: 90px;">
+                    <div class="school-name">Sekolah Sepak Bola Mitra Surabaya</div>
+                    <div class="school-address">Jl. Raya Lidah Wetan No. 85, Surabaya, Jawa Timur</div>
+                    <div class="school-phone">Telp. (+62) 3854538351</div>
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            @php $totalBobot = 0; @endphp
-            @foreach($kriterias as $kriteria)
-            @php $totalBobot += $kriteria->bobot; @endphp
-            <tr class="{{ $loop->iteration % 2 == 0 ? 'alternate-row' : '' }}">
-                <td><strong>{{ $kriteria->kode_kriteria }}</strong></td>
-                <td class="text-left">{{ $kriteria->nama_kriteria }}</td>
-                <td>{{ $kriteria->bobot }}%</td>
-                <td>{{ number_format($kriteria->bobot / 100, 3) }}</td>
-                <td>{{ ucfirst($kriteria->jenis) }}</td>
-            </tr>
-            @endforeach
-            <tr style="background-color: #f0f0f0;">
-                <td colspan="2" class="text-right text-bold">TOTAL BOBOT:</td>
-                <td class="text-bold">{{ $totalBobot }}%</td>
-                <td class="text-bold">{{ number_format($totalBobot / 100, 3) }}</td>
+        </table>
+
+        <div class="report-title">Laporan Hasil Evaluasi Komprehensif Atlet</div>
+        <div class="report-subtitle">Tahun Penilaian {{ date('Y') }}</div>
+
+        <div class="table-box">
+            <div class="section-title">Informasi Laporan</div>
+            <table class="identity-table">
+                <tr>
+                    <td class="label">Nomor Laporan</td>
+                    <td class="separator">:</td>
+                    <td>{{ $nomorLaporan }}</td>
+                    <td class="label">Metode Evaluasi</td>
+                    <td class="separator">:</td>
+                    <td>ARAS (Additive Ratio Assessment)</td>
+                </tr>
+                <tr>
+                    <td class="label">Tanggal Cetak</td>
+                    <td class="separator">:</td>
+                    <td>{{ $tanggalCetak }}</td>
+                    <td class="label">Jumlah Kriteria</td>
+                    <td class="separator">:</td>
+                    <td>{{ $kriterias->count() }} Parameter</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-box">
+            <div class="section-title">Ringkasan Hasil Evaluasi</div>
+            <table class="summary-table">
+                <tr>
+                    <td class="label">Jumlah Atlet Dinilai</td>
+                    <td class="separator">:</td>
+                    <td>{{ count($hasilPerangkingan) }} Atlet</td>
+                    <td class="label">Skor Tertinggi Akhir</td>
+                    <td class="separator">:</td>
+                    <td>{{ number_format($hasilPerangkingan[0]['Ki'] * 100, 2) }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Peringkat #1 (Terbaik)</td>
+                    <td class="separator">:</td>
+                    <td class="font-bold">{{ $hasilPerangkingan[0]['atlet']->nama }}</td>
+                    <td class="label">Nilai Utility Tertinggi</td>
+                    <td class="separator">:</td>
+                    <td>{{ number_format($hasilPerangkingan[0]['Ki'], 4) }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="table-box">
+            <div class="section-title">Parameter Evaluasi</div>
+            <table class="score-table">
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">No</th>
+                        <th style="width: 14%;">Kode</th>
+                        <th>Kriteria</th>
+                        <th style="width: 15%;">Jenis</th>
+                        <th style="width: 15%;">Bobot (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @php $totalBobot = 0; @endphp
+                    @foreach($kriterias as $index => $kriteria)
+                        @php $totalBobot += $kriteria->bobot; @endphp
+                        <tr>
+                            <td class="text-center">{{ $index + 1 }}</td>
+                            <td class="text-center font-bold">{{ $kriteria->kode_kriteria }}</td>
+                            <td>{{ $kriteria->nama_kriteria }}</td>
+                            <td class="text-center">{{ ucfirst($kriteria->jenis) }}</td>
+                            <td class="text-center">{{ number_format($kriteria->bobot, 0) }}%</td>
+                        </tr>
+                    @endforeach
+                    <tr>
+                        <td colspan="4" class="text-right font-bold">TOTAL BOBOT</td>
+                        <td class="text-center font-bold">{{ $totalBobot }}%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-box">
+            <div class="section-title">Hasil Pemeringkatan Final</div>
+            <table class="score-table">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">Ranking</th>
+                        <th>Nama Atlet</th>
+                        <th style="width: 25%;">Cabang & Umur</th>
+                        <th style="width: 15%;">Nilai Sᵢ</th>
+                        <th style="width: 15%;">Nilai Kᵢ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($hasilPerangkingan as $hasil)
+                        <tr>
+                            <td class="text-center font-bold"
+                                style="{{ $hasil['ranking'] <= 3 ? 'background-color: #fef08a;' : '' }}">
+                                {{ $hasil['ranking'] }}
+                            </td>
+                            <td class="font-bold">{{ $hasil['atlet']->nama }}</td>
+                            <td class="text-center">{{ $hasil['atlet']->cabang_olahraga }} - {{ $hasil['atlet']->umur }} Th
+                            </td>
+                            <td class="text-center">{{ number_format($hasil['Si'], 4) }}</td>
+                            <td class="text-center font-bold">{{ number_format($hasil['Ki'], 4) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-box">
+            <div class="section-title">Kesimpulan</div>
+            <div class="notes">
+                Berdasarkan hasil perhitungan komprehensif menggunakan sistem metode ARAS (Additive Ratio Assessment),
+                terkalkulasi pemeringkatan terhadap <span class="font-bold">{{ count($hasilPerangkingan) }}</span> atlet
+                berdasarkan <span class="font-bold">{{ $kriterias->count() }}</span> indikator penilaian.
+                Atlet bernama <span class="font-bold">{{ $hasilPerangkingan[0]['atlet']->nama }}</span> meraih peringkat
+                pertama
+                dengan perolehan skor <span
+                    class="font-bold">{{ number_format($hasilPerangkingan[0]['Ki'] * 100, 2) }}</span>.
+                Laporan komprehensif ini secara sah diterbitkan untuk dijadikan rujukan utama pelatih dan direksi dalam
+                penentuan program pembinaan lanjutan.
+            </div>
+        </div>
+
+        <table class="signature-table">
+            <tr>
                 <td>
-                    @if($totalBobot == 100)
-                    <span style="color: #000000; font-weight: bold;">✓ SESUAI</span>
-                    @else
-                    <span style="color: #ff0000; font-weight: bold;">⚠ PERHATIAN</span>
-                    @endif
+                    Mengetahui,<br>Pelatih Utama
+                    <div class="signature-space"></div>
+                    <div class="signature-name">.................................</div>
                 </td>
-            </tr>
-        </tbody>
-    </table>
-
-    <!-- 2. Matrix Keputusan -->
-    @if($matrixKeputusan)
-    <div class="section-header">2. Matrix Data Evaluasi</div>
-    <div class="subsection-header">Matrix Keputusan (X)</div>
-    <table class="data-table matrix-table">
-        <thead>
-            <tr>
-                <th width="8%">Kode</th>
-                <th width="25%">Alternatif</th>
-                @foreach($kriterias as $kriteria)
-                <th>{{ $kriteria->kode_kriteria }}</th>
-                @endforeach
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($matrixKeputusan as $index => $row)
-            <tr class="{{ $loop->iteration % 2 == 0 ? 'alternate-row' : '' }}">
-                <td class="text-bold">{{ $index == 0 ? 'A₀' : 'A' . $index }}</td>
-                <td class="text-left">{{ $row['atlet'] ? $row['atlet']->nama : 'REFERENSI OPTIMAL' }}</td>
-                @foreach($kriterias as $kriteria)
-                <td>{{ number_format($row['C' . $kriteria->id], 2) }}</td>
-                @endforeach
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    @endif
-
-    <!-- 3. Matrix Normalisasi -->
-    @if($matrixNormalisasi)
-    <div class="subsection-header">Matrix Normalisasi (X̄)</div>
-    <table class="data-table matrix-table">
-        <thead>
-            <tr>
-                <th width="8%">Kode</th>
-                <th width="25%">Alternatif</th>
-                @foreach($kriterias as $kriteria)
-                <th>{{ $kriteria->kode_kriteria }}</th>
-                @endforeach
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($matrixNormalisasi as $index => $row)
-            <tr class="{{ $loop->iteration % 2 == 0 ? 'alternate-row' : '' }}">
-                <td class="text-bold">{{ $index == 0 ? 'A₀' : 'A' . $index }}</td>
-                <td class="text-left">{{ $row['atlet'] ? $row['atlet']->nama : 'REFERENSI OPTIMAL' }}</td>
-                @foreach($kriterias as $kriteria)
-                <td>{{ number_format($row['C' . $kriteria->id], 4) }}</td>
-                @endforeach
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    @endif
-
-    <!-- 4. Matrix Terbobot -->
-    @if($matrixTerbobot)
-    <div class="subsection-header">Matrix Terbobot (V)</div>
-    <table class="data-table matrix-table">
-        <thead>
-            <tr>
-                <th width="8%">Kode</th>
-                <th width="25%">Alternatif</th>
-                @foreach($kriterias as $kriteria)
-                <th>{{ $kriteria->kode_kriteria }}</th>
-                @endforeach
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($matrixTerbobot as $index => $row)
-            <tr class="{{ $loop->iteration % 2 == 0 ? 'alternate-row' : '' }}">
-                <td class="text-bold">{{ $index == 0 ? 'A₀' : 'A' . $index }}</td>
-                <td class="text-left">{{ $row['atlet'] ? $row['atlet']->nama : 'REFERENSI OPTIMAL' }}</td>
-                @foreach($kriterias as $kriteria)
-                <td>{{ number_format($row['C' . $kriteria->id], 4) }}</td>
-                @endforeach
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    @endif
-
-    <!-- 5. Nilai Optimal S₀ -->
-    @if($s0)
-    <div class="section-header">3. Parameter Perhitungan</div>
-    <div style="border: 1px solid #000000; padding: 6mm; margin: 5mm 0;">
-        <div style="text-align: center; font-weight: bold; margin-bottom: 3mm;">
-            NILAI REFERENSI OPTIMAL (S₀)
-        </div>
-        <div style="text-align: center; font-size: 16pt; font-weight: bold;">
-            {{ number_format($s0, 4) }}
-        </div>
-        <div style="text-align: center; font-size: 10pt; margin-top: 2mm; color: #666666;">
-            Nilai optimality function untuk alternatif referensi
-        </div>
-    </div>
-    @endif
-
-    <!-- 6. Hasil Perangkingan Akhir -->
-    <div class="section-header">4. HASIL PEMERINGKATAN FINAL</div>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th width="12%">RANKING</th>
-                <th width="40%">NAMA ATLET</th>
-                <th width="24%">NILAI Sᵢ</th>
-                <th width="24%">NILAI UTILITY (Kᵢ)</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($hasilPerangkingan as $hasil)
-            <tr class="ranking-{{ $hasil['ranking'] <= 3 ? $hasil['ranking'] : '' }}">
-                <td class="ranking-cell">{{ $hasil['ranking'] }}</td>
-                <td class="text-left">
-                    <div style="font-weight: bold;">{{ $hasil['atlet']->nama }}</div>
-                    <div style="font-size: 9pt; color: #666666;">
-                        {{ $hasil['atlet']->cabang_olahraga }} • {{ $hasil['atlet']->umur }} Tahun
-                    </div>
-                </td>
-                <td>{{ number_format($hasil['Si'], 4) }}</td>
                 <td>
-                    <strong>{{ number_format($hasil['Ki'], 4) }}</strong>
-                    <div style="font-size: 9pt; color: #666666;">
-                        {{ number_format($hasil['Ki'] * 100, 1) }}%
-                    </div>
+                    Mengetahui,<br>Pelatih Pendamping
+                    <div class="signature-space"></div>
+                    <div class="signature-name">.................................</div>
                 </td>
             </tr>
-            @endforeach
-        </tbody>
-    </table>
+        </table>
 
-    <!-- 7. Analisis Hasil -->
-    <div class="section-header">5. ANALISIS DAN KESIMPULAN</div>
-    <div style="border: 1px solid #000000; padding: 8mm; margin-bottom: 8mm;">
-        <div style="font-weight: bold; margin-bottom: 4mm; text-align: center;">
-            HASIL EVALUASI KOMPREHENSIF
+        <div class="footer-note">
+            Dokumen ini diterbitkan oleh Sekolah Sepak Bola Mitra Surabaya sebagai laporan hasil evaluasi resmi.
         </div>
-        
-        <div style="margin-bottom: 4mm;">
-            <strong>Atlet dengan Performa Terbaik:</strong><br>
-            <span style="font-size: 11pt;">
-                {{ $hasilPerangkingan[0]['atlet']->nama }} dengan nilai utility 
-                <strong>{{ number_format($hasilPerangkingan[0]['Ki'], 4) }}</strong> 
-                ({{ number_format($hasilPerangkingan[0]['Ki'] * 100, 1) }}%)
-            </span>
-        </div>
-        
-        <div style="margin-bottom: 4mm;">
-            <strong>Distribusi Nilai Utility:</strong><br>
-            • Tertinggi: {{ number_format($hasilPerangkingan[0]['Ki'], 4) }}<br>
-            • Terendah: {{ number_format($hasilPerangkingan[count($hasilPerangkingan)-1]['Ki'], 4) }}<br>
-            • Rata-rata: {{ number_format(array_sum(array_column($hasilPerangkingan, 'Ki')) / count($hasilPerangkingan), 4) }}
-        </div>
-        
-        <div>
-            <strong>Kesimpulan:</strong><br>
-            Berdasarkan hasil perhitungan menggunakan metode ARAS (Additive Ratio Assessment), sistem berhasil 
-            memeringkat {{ count($hasilPerangkingan) }} atlet berdasarkan {{ $kriterias->count() }} parameter evaluasi. 
-            Hasil ini dapat dijadikan dasar untuk pengambilan keputusan dalam seleksi, pembinaan, dan pengembangan atlet.
-        </div>
-    </div>
 
-    <!-- Tanda Tangan -->
-    <div class="signature-section">
-        <div class="signature-grid">
-            <div class="signature-box">
-                <div class="signature-line"></div>
-                <div class="signature-name">Koordinator Evaluasi</div>
-                <div class="signature-title">Penanggung Jawab Teknis</div>
+        <!-- LAMPIRAN PERHITUNGAN MATRIX -->
+        @if($matrixKeputusan)
+            <div class="page-break"></div>
+            <div class="report-title" style="margin-top: 0;">Lampiran Matrix Rekam Jejak Penilaian</div>
+
+            <div class="table-box mt-5">
+                <div class="section-title">Matrix Keputusan Awal</div>
+                <table class="score-table" style="font-size: 10px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">Kode</th>
+                            <th style="width: 25%;">Alternatif</th>
+                            @foreach($kriterias as $kriteria)
+                                <th>{{ $kriteria->kode_kriteria }}</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($matrixKeputusan as $index => $row)
+                            <tr>
+                                <td class="text-center font-bold">{{ $index == 0 ? 'A₀' : 'A' . $index }}</td>
+                                <td>{{ $row['atlet'] ? $row['atlet']->nama : 'REFERENSI OPTIMAL' }}</td>
+                                @foreach($kriterias as $kriteria)
+                                    <td class="text-center">{{ number_format($row['C' . $kriteria->id], 2) }}</td>
+                                @endforeach
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-            
-            <div class="signature-box">
-                <div class="signature-line"></div>
-                <div class="signature-name">Kepala Akademi</div>
-                <div class="signature-title">Penanggung Jawab Program</div>
-            </div>
-        </div>
-    </div>
+        @endif
 
-    <!-- Footer -->
-    <div class="document-footer">
-        <p>Laporan ini dicetak secara otomatis oleh Sistem Evaluasi ARAS Akademi Sepak Bola Indonesia</p>
-        <p>Tanggal cetak: {{ date('d/m/Y H:i') }} • Halaman 1 dari 1</p>
-        <p class="mt-3">
-            <em>
-                Dokumen ini merupakan laporan resmi hasil evaluasi dan digunakan untuk keperluan 
-                pengambilan keputusan serta pembinaan atlet. Kerahasiaan dokumen ini diharapkan dapat dijaga.
-            </em>
-        </p>
+        @if($matrixNormalisasi)
+            <div class="table-box">
+                <div class="section-title">Matrix Normalisasi</div>
+                <table class="score-table" style="font-size: 10px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">Kode</th>
+                            <th style="width: 25%;">Alternatif</th>
+                            @foreach($kriterias as $kriteria)
+                                <th>{{ $kriteria->kode_kriteria }}</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($matrixNormalisasi as $index => $row)
+                            <tr>
+                                <td class="text-center font-bold">{{ $index == 0 ? 'A₀' : 'A' . $index }}</td>
+                                <td>{{ $row['atlet'] ? $row['atlet']->nama : 'REFERENSI OPTIMAL' }}</td>
+                                @foreach($kriterias as $kriteria)
+                                    <td class="text-center">{{ number_format($row['C' . $kriteria->id], 4) }}</td>
+                                @endforeach
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+
+        @if($matrixTerbobot)
+            <div class="table-box">
+                <div class="section-title">Matrix Terbobot</div>
+                <table class="score-table" style="font-size: 10px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 8%;">Kode</th>
+                            <th style="width: 25%;">Alternatif</th>
+                            @foreach($kriterias as $kriteria)
+                                <th>{{ $kriteria->kode_kriteria }}</th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($matrixTerbobot as $index => $row)
+                            <tr>
+                                <td class="text-center font-bold">{{ $index == 0 ? 'A₀' : 'A' . $index }}</td>
+                                <td>{{ $row['atlet'] ? $row['atlet']->nama : 'REFERENSI OPTIMAL' }}</td>
+                                @foreach($kriterias as $kriteria)
+                                    <td class="text-center">{{ number_format($row['C' . $kriteria->id], 4) }}</td>
+                                @endforeach
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+
     </div>
 </body>
+
 </html>

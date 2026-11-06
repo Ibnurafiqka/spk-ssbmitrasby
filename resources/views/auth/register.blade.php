@@ -22,6 +22,7 @@
             <select id="role" name="role" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring focus:ring-indigo-200 focus:border-indigo-300">
                 <option value="pelatih" selected>Pelatih</option>
                 <option value="admin">Admin</option>
+                <option value="orang_tua">Orang Tua</option>
             </select>
             <x-input-error :messages="$errors->get('role')" class="mt-2" />
         </div>

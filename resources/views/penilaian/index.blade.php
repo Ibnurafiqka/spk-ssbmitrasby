@@ -30,7 +30,7 @@
                             Daftar Atlet untuk Penilaian
                         </h3>
                         <div class="text-sm text-gray-500 dark:text-gray-400">
-                            Total: {{ $atlets->count() }} Atlet
+                            Total: {{ $atlets->total() }} Atlet
                         </div>
                         <a href="{{ route('atlet.create') }}" class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition">
                             <svg class="w-5 h-5 me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,7 +64,7 @@
                                 @endphp
                                 <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                                        {{ $index + 1 }}
+                                        {{ $atlets->firstItem() + $index }}
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex items-center gap-3">
@@ -159,29 +159,15 @@
                         </table>
                     </div>
 
+                    <!-- Pagination -->
+                    @if($atlets->hasPages())
+                        <div class="mt-4">
+                            {{ $atlets->links() }}
+                        </div>
+                    @endif
+
                     <!-- Summary Information -->
                     <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        @php
-                            $totalAtlets = $atlets->count();
-                            $completeCount = 0;
-                            $incompleteCount = 0;
-                            $notStartedCount = 0;
-                            
-                            foreach($atlets as $atlet) {
-                                $penilaianCount = \App\Models\Penilaian::where('atlet_id', $atlet->id)->count();
-                                $kriteriaCount = \App\Models\Kriteria::count();
-                                $isComplete = $penilaianCount == $kriteriaCount && $kriteriaCount > 0;
-                                
-                                if($isComplete) {
-                                    $completeCount++;
-                                } elseif($penilaianCount > 0) {
-                                    $incompleteCount++;
-                                } else {
-                                    $notStartedCount++;
-                                }
-                            }
-                        @endphp
-                        
                         <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                             <div class="flex items-center gap-3">
                                 <div class="p-2 bg-green-100 dark:bg-green-800 rounded-lg">

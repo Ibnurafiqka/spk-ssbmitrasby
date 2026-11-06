@@ -16,10 +16,14 @@ class PerangkinganController extends Controller
     {
         $kriterias = Kriteria::all();
         
-        // Cek apakah ada kriteria
         if ($kriterias->isEmpty()) {
             return redirect()->route('kriteria.index')
                 ->with('error', 'Belum ada kriteria penilaian! Silakan tambahkan kriteria terlebih dahulu.');
+        }
+
+        if (!$this->isKonfigurasiKriteriaValid($kriterias)) {
+            return redirect()->route('kriteria.index')
+                ->with('error', 'Konfigurasi kriteria belum valid. Harus 9 kriteria standar dan total bobot tiap posisi (penyerang, tengah, bertahan) harus 100%.');
         }
 
         // Get filter kelompok umur dari request
@@ -36,31 +40,29 @@ class PerangkinganController extends Controller
             }
         }
         
-        // Ambil atlet yang sudah memiliki penilaian lengkap
+        // Ambil atlet yang sudah memiliki penilaian lengkap (semua posisi untuk count kards)
+        $atletLengkapAll = (clone $query)->whereHas('penilaians', function($q) use ($kriterias) {
+            $q->whereIn('kriteria_id', $kriterias->pluck('id'));
+        }, '=', $kriterias->count())->get();
+
+        $jumlahPerPosisi = [
+            'penyerang' => $atletLengkapAll->where('posisi', 'penyerang')->count(),
+            'tengah' => $atletLengkapAll->where('posisi', 'tengah')->count(),
+            'bertahan' => $atletLengkapAll->where('posisi', 'bertahan')->count(),
+        ];
+
+        // Filter tambahan berdasarkan posisi
+        $filterPosisi = $request->input('posisi', 'all');
+        if ($filterPosisi != 'all') {
+            $query->where('posisi', $filterPosisi);
+        }
+
+        // Ambil atlet sesuai filter akhir
         $atletLengkap = $query->whereHas('penilaians', function($q) use ($kriterias) {
             $q->whereIn('kriteria_id', $kriterias->pluck('id'));
         }, '=', $kriterias->count())->get();
 
-        // Hitung jumlah atlet per kelompok umur
-        $jumlahPerKelompok = [
-            '8-11' => Atlet::whereBetween('umur', [8, 11])
-                ->whereHas('penilaians', function($q) use ($kriterias) {
-                    $q->whereIn('kriteria_id', $kriterias->pluck('id'));
-                }, '=', $kriterias->count())
-                ->count(),
-            '12-15' => Atlet::whereBetween('umur', [12, 15])
-                ->whereHas('penilaians', function($q) use ($kriterias) {
-                    $q->whereIn('kriteria_id', $kriterias->pluck('id'));
-                }, '=', $kriterias->count())
-                ->count(),
-            '16-18' => Atlet::whereBetween('umur', [16, 18])
-                ->whereHas('penilaians', function($q) use ($kriterias) {
-                    $q->whereIn('kriteria_id', $kriterias->pluck('id'));
-                }, '=', $kriterias->count())
-                ->count(),
-        ];
-
-        return view('perangkingan.index', compact('atletLengkap', 'kriterias', 'jumlahPerKelompok'));
+        return view('perangkingan.index', compact('atletLengkap', 'kriterias', 'jumlahPerPosisi', 'kelompokUmur', 'filterPosisi'));
     }
 
     /**
@@ -75,8 +77,14 @@ class PerangkinganController extends Controller
                 ->with('error', 'Belum ada kriteria penilaian!');
         }
 
-        // Get filter kelompok umur
+        if (!$this->isKonfigurasiKriteriaValid($kriterias)) {
+            return redirect()->route('kriteria.index')
+                ->with('error', 'Konfigurasi kriteria belum valid. Pastikan 9 kriteria standar dan total bobot tiap posisi tepat 100%.');
+        }
+
+        // Get filter kelompok umur dan posisi
         $kelompokUmur = $request->input('kelompok_umur', 'all');
+        $filterPosisi = $request->input('posisi', 'all');
         
         // Query atlet berdasarkan kelompok umur
         $query = Atlet::query();
@@ -88,6 +96,11 @@ class PerangkinganController extends Controller
             }
         }
         
+        // Filter tambahan berdasarkan posisi
+        if ($filterPosisi != 'all') {
+            $query->where('posisi', $filterPosisi);
+        }
+
         // Ambil atlet dengan penilaian lengkap
         $atletes = $query->whereHas('penilaians', function($q) use ($kriterias) {
             $q->whereIn('kriteria_id', $kriterias->pluck('id'));
@@ -97,6 +110,9 @@ class PerangkinganController extends Controller
             $message = 'Tidak ada atlet dengan penilaian lengkap';
             if ($kelompokUmur != 'all') {
                 $message .= ' di kelompok umur ' . $kelompokUmur . ' tahun';
+            }
+            if ($filterPosisi != 'all') {
+                $message .= ' untuk posisi ' . $filterPosisi;
             }
             return redirect()->route('perangkingan.index')
                 ->with('error', $message . '!');
@@ -115,6 +131,11 @@ class PerangkinganController extends Controller
         if ($kriterias->isEmpty()) {
             return redirect()->route('kriteria.index')
                 ->with('error', 'Belum ada kriteria penilaian!');
+        }
+
+        if (!$this->isKonfigurasiKriteriaValid($kriterias)) {
+            return redirect()->route('kriteria.index')
+                ->with('error', 'Konfigurasi kriteria belum valid. Pastikan 9 kriteria standar dan total bobot tiap posisi tepat 100%.');
         }
 
         // Validasi input
@@ -231,8 +252,7 @@ class PerangkinganController extends Controller
             $matrixTerbobot[$index] = ['atlet' => $row['atlet']];
             foreach ($kriterias as $kriteria) {
                 $kolom = 'C' . $kriteria->id;
-                // Bobot dalam desimal: bobot/100
-                $bobotDesimal = $kriteria->bobot / 100;
+                $bobotDesimal = $this->resolveBobotDesimal($kriteria, $row['atlet']);
                 $matrixTerbobot[$index][$kolom] = $row[$kolom] * $bobotDesimal;
             }
         }
@@ -322,6 +342,55 @@ class PerangkinganController extends Controller
                 ->with('error', 'Belum ada hasil perhitungan! Silakan lakukan perhitungan terlebih dahulu.');
         }
 
+        $rankingChart = [
+            'labels' => [],
+            'series' => [],
+        ];
+
+        $profilAtletChart = [];
+
+        foreach ($hasilPerangkingan as $hasil) {
+            $rankingChart['labels'][] = $hasil['atlet']->nama;
+            $rankingChart['series'][] = round($hasil['Ki'] * 100, 2);
+        }
+
+        foreach ($hasilPerangkingan as $hasil) {
+            $atlet = $hasil['atlet'];
+            $atletRow = collect($matrixKeputusan)->first(function ($row) use ($atlet) {
+                return isset($row['atlet']) && $row['atlet'] && $row['atlet']->id === $atlet->id;
+            });
+
+            $profilSeries = [];
+            $kontribusiSeries = [];
+
+            foreach ($kriterias as $kriteria) {
+                $kolom = 'C' . $kriteria->id;
+                $nilaiAktual = (float) ($atletRow[$kolom] ?? 0);
+                $nilaiOptimalKriteria = (float) ($matrixKeputusan[0][$kolom] ?? 0);
+                $nilaiPersentase = $nilaiOptimalKriteria > 0
+                    ? min(100, round(($nilaiAktual / $nilaiOptimalKriteria) * 100, 2))
+                    : 0;
+
+                $kontribusiNilai = collect($matrixTerbobot)->first(function ($row) use ($atlet) {
+                    return isset($row['atlet']) && $row['atlet'] && $row['atlet']->id === $atlet->id;
+                });
+
+                $profilSeries[] = $nilaiPersentase;
+                $kontribusiSeries[] = round(((float) ($kontribusiNilai[$kolom] ?? 0)) * 100, 4);
+            }
+
+            $profilAtletChart[] = [
+                'id' => $atlet->id,
+                'nama' => $atlet->nama,
+                'ranking' => $hasil['ranking'],
+                'ki' => round($hasil['Ki'] * 100, 2),
+                'si' => round($hasil['Si'], 4),
+                'labels' => $kriterias->pluck('nama_kriteria')->map(fn ($nama) => ucfirst($nama))->values()->all(),
+                'profil' => $profilSeries,
+                'kontribusi' => $kontribusiSeries,
+            ];
+        }
+
         return view('perangkingan.hasil', compact(
             'hasilPerangkingan',
             'matrixKeputusan',
@@ -333,7 +402,44 @@ class PerangkinganController extends Controller
             'kriterias',
             'kelompokUmur',
             'isSelectedAtlets',
-            'selectedAtletsCount'
+            'selectedAtletsCount',
+            'rankingChart',
+            'profilAtletChart'
         ));
+    }
+
+    private function resolveBobotDesimal(Kriteria $kriteria, ?Atlet $atlet): float
+    {
+        if ($atlet) {
+            return $kriteria->getBobotByPosisi($atlet->posisi) / 100;
+        }
+
+        return $kriteria->getBobotByPosisi(null) / 100;
+    }
+
+    private function isKonfigurasiKriteriaValid($kriterias): bool
+    {
+        if ($kriterias->count() !== count(Kriteria::NAMA_STANDAR)) {
+            return false;
+        }
+
+        $namaSet = $kriterias->pluck('nama_kriteria')->map(fn ($n) => strtolower(trim($n)))->sort()->values()->all();
+        $standarSet = collect(Kriteria::NAMA_STANDAR)->map(fn ($n) => strtolower(trim($n)))->sort()->values()->all();
+        if ($namaSet !== $standarSet) {
+            return false;
+        }
+
+        $totalPenyerang = (float) $kriterias->sum('bobot_penyerang');
+        $totalTengah = (float) $kriterias->sum('bobot_tengah');
+        $totalBertahan = (float) $kriterias->sum('bobot_bertahan');
+
+        return $this->isHundred($totalPenyerang)
+            && $this->isHundred($totalTengah)
+            && $this->isHundred($totalBertahan);
+    }
+
+    private function isHundred(float $value): bool
+    {
+        return abs($value - 100.0) < 0.0001;
     }
 }

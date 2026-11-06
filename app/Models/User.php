@@ -24,6 +24,29 @@ class User extends Authenticatable
     ];
 
     /**
+     * Relasi ke OrangTua
+     */
+    public function orangTua()
+    {
+        return $this->hasOne(OrangTua::class);
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isPelatih(): bool
+    {
+        return $this->role === 'pelatih';
+    }
+
+    public function isOrangTua(): bool
+    {
+        return $this->role === 'orang_tua';
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var array<int, string>

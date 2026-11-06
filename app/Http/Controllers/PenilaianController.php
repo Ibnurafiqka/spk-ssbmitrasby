@@ -14,10 +14,29 @@ class PenilaianController extends Controller
      */
     public function index()
     {
-        $penilaians = Penilaian::with(['atlet', 'kriteria'])->latest()->paginate(10);
-        $atlets = Atlet::all();
+        $atlets = Atlet::with('orangTua.user')->latest()->paginate(10);
+        $kriteriaCount = Kriteria::count();
         
-        return view('penilaian.index', compact('penilaians', 'atlets'));
+        $totalAtlets = Atlet::count();
+        $completeCount = 0;
+        $incompleteCount = 0;
+        $notStartedCount = 0;
+
+        $allAtlets = Atlet::all();
+        foreach($allAtlets as $atlet) {
+            $penilaianCount = Penilaian::where('atlet_id', $atlet->id)->count();
+            $isComplete = $penilaianCount == $kriteriaCount && $kriteriaCount > 0;
+            
+            if($isComplete) {
+                $completeCount++;
+            } elseif($penilaianCount > 0) {
+                $incompleteCount++;
+            } else {
+                $notStartedCount++;
+            }
+        }
+        
+        return view('penilaian.index', compact('atlets', 'kriteriaCount', 'totalAtlets', 'completeCount', 'incompleteCount', 'notStartedCount'));
     }
 
     /**
@@ -26,7 +45,7 @@ class PenilaianController extends Controller
     public function create(Request $request)
     {
         $atlet_id = $request->query('atlet_id');
-        $atlets = Atlet::all();
+        $atlets = Atlet::orderBy('nama')->get();
         $kriterias = Kriteria::all();
         
         // Jika ada atlet_id, ambil atlet yang dipilih
@@ -67,8 +86,14 @@ class PenilaianController extends Controller
             ]);
         }
 
+        $atlet = Atlet::find($validated['atlet_id']);
+        [$rekomendasiPosisi, $nilaiRekomendasi] = $this->hitungRekomendasiPosisi($validated['penilaian']);
+        $pesanRekomendasi = $atlet
+            ? "{$atlet->nama} mendapat nilai terbaik untuk posisi {$rekomendasiPosisi} (skor " . number_format($nilaiRekomendasi, 2) . ")."
+            : "Rekomendasi posisi terbaik: {$rekomendasiPosisi}.";
+
         return redirect()->route('penilaian.index')
-            ->with('success', 'Penilaian atlet berhasil disimpan!');
+            ->with('success', 'Penilaian atlet berhasil disimpan! ' . $pesanRekomendasi);
     }
 
     /**
@@ -121,8 +146,14 @@ class PenilaianController extends Controller
             ]);
         }
 
+        $atlet = Atlet::find($atlet_id);
+        [$rekomendasiPosisi, $nilaiRekomendasi] = $this->hitungRekomendasiPosisi($validated['penilaian']);
+        $pesanRekomendasi = $atlet
+            ? "{$atlet->nama} mendapat nilai terbaik untuk posisi {$rekomendasiPosisi} (skor " . number_format($nilaiRekomendasi, 2) . ")."
+            : "Rekomendasi posisi terbaik: {$rekomendasiPosisi}.";
+
         return redirect()->route('penilaian.index')
-            ->with('success', 'Penilaian atlet berhasil diperbarui!');
+            ->with('success', 'Penilaian atlet berhasil diperbarui! ' . $pesanRekomendasi);
     }
 
     /**
@@ -134,5 +165,41 @@ class PenilaianController extends Controller
 
         return redirect()->route('penilaian.index')
             ->with('success', 'Penilaian atlet berhasil dihapus!');
+    }
+
+    private function hitungRekomendasiPosisi(array $inputPenilaian): array
+    {
+        $kriteriaMap = Kriteria::whereIn('id', collect($inputPenilaian)->pluck('kriteria_id')->all())
+            ->get()
+            ->keyBy('id');
+
+        $skor = [
+            'penyerang' => 0.0,
+            'tengah' => 0.0,
+            'bertahan' => 0.0,
+        ];
+
+        foreach ($inputPenilaian as $item) {
+            $kriteria = $kriteriaMap->get($item['kriteria_id']);
+            if (!$kriteria) {
+                continue;
+            }
+
+            $nilai = (float) $item['nilai'];
+
+            foreach (array_keys($skor) as $posisi) {
+                $bobot = $kriteria->getBobotByPosisi($posisi) / 100;
+                $kontribusi = $kriteria->jenis === 'cost'
+                    ? ($nilai > 0 ? ($bobot / $nilai) : 0)
+                    : ($nilai * $bobot);
+
+                $skor[$posisi] += $kontribusi;
+            }
+        }
+
+        arsort($skor);
+        $posisiTerbaik = array_key_first($skor);
+
+        return [$posisiTerbaik, $skor[$posisiTerbaik] ?? 0];
     }
 }

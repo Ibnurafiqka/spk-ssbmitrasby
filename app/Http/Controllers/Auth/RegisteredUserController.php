@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\OrangTua;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -34,7 +35,7 @@ class RegisteredUserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => ['required', 'in:admin,pelatih'],
+            'role' => ['nullable', 'in:admin,pelatih,orang_tua'],
         ]);
 
         $user = User::create([
@@ -43,6 +44,10 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role ?? 'pelatih',
         ]);
+
+        if ($user->role === 'orang_tua') {
+            OrangTua::updateOrCreate(['user_id' => $user->id], []);
+        }
 
         event(new Registered($user));
 

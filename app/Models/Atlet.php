@@ -9,12 +9,14 @@ class Atlet extends Model
 {
     use HasFactory;
 
+    public const POSISI = ['penyerang', 'tengah', 'bertahan'];
+
     protected $fillable = [
         'nama',
         'jenis_kelamin',
         'umur',
-        'alamat',
-        'no_telepon',
+        'posisi',
+        'orang_tua_id',
         'cabang_olahraga',
     ];
 
@@ -27,6 +29,14 @@ class Atlet extends Model
         return $this->hasMany(Penilaian::class);
     }
 
+    /**
+     * Relasi ke OrangTua
+     */
+    public function orangTua()
+    {
+        return $this->belongsTo(OrangTua::class);
+    }
+
 
     /**
      * Accessor untuk jenis kelamin lengkap
@@ -34,5 +44,15 @@ class Atlet extends Model
     public function getJenisKelaminLengkapAttribute()
     {
         return $this->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';
+    }
+
+    public function getPosisiLabelAttribute(): string
+    {
+        return match ($this->posisi) {
+            'penyerang' => 'Penyerang',
+            'tengah' => 'Tengah',
+            'bertahan' => 'Bertahan',
+            default => '-',
+        };
     }
 }
