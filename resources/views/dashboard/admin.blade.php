@@ -31,41 +31,41 @@
 
           <!-- Quick Stats -->
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              @php
-                  $totalAtlet = \App\Models\Atlet::count();
-                  $totalKriteria = \App\Models\Kriteria::count();
-                  $totalPenilaian = \App\Models\Penilaian::count();
-                  $totalUsers = \App\Models\User::count();
-                  $atletLengkap = \App\Models\Atlet::whereHas('penilaians', function($q) {
-                      $q->whereIn('kriteria_id', \App\Models\Kriteria::pluck('id'));
-                  }, '=', \App\Models\Kriteria::count())->count();
-                  
-                  // Data untuk chart - Pendaftaran Atlet per Bulan
-                  $atletPerBulan = \App\Models\Atlet::selectRaw('MONTH(created_at) as bulan, COUNT(*) as total')
-                      ->whereYear('created_at', date('Y'))
-                      ->groupBy('bulan')
-                      ->orderBy('bulan')
-                      ->get()
-                      ->pluck('total', 'bulan')
-                      ->toArray();
-                  
-                  // Data untuk chart - Penilaian per Bulan
-                  $penilaianPerBulan = \App\Models\Penilaian::selectRaw('MONTH(created_at) as bulan, COUNT(*) as total')
-                      ->whereYear('created_at', date('Y'))
-                      ->groupBy('bulan')
-                      ->orderBy('bulan')
-                      ->get()
-                      ->pluck('total', 'bulan')
-                      ->toArray();
-                  
-                  // Data untuk pie chart - Status Penilaian Atlet
-                  $atletBelumDinilai = $totalAtlet - $atletLengkap;
-                  $atletSebagian = \App\Models\Atlet::whereHas('penilaians')
-                      ->whereDoesntHave('penilaians', function($q) {
-                          $q->whereIn('kriteria_id', \App\Models\Kriteria::pluck('id'));
-                      }, '=', \App\Models\Kriteria::count())
-                      ->count();
-              @endphp
+            @php
+                $totalAtlet = \App\Models\Atlet::count();
+                $totalKriteria = \App\Models\Kriteria::count();
+                $totalPenilaian = \App\Models\Penilaian::count();
+                $totalUsers = \App\Models\User::count();
+                $atletLengkap = \App\Models\Atlet::whereHas('penilaians', function($q) {
+                    $q->whereIn('kriteria_id', \App\Models\Kriteria::pluck('id'));
+                }, '=', \App\Models\Kriteria::count())->count();
+                
+                // Data untuk chart - Pendaftaran Atlet per Bulan (SUDAH DIPERBAIKI UNTUK POSTGRESQL)
+                $atletPerBulan = \App\Models\Atlet::selectRaw('EXTRACT(MONTH FROM created_at) as bulan, COUNT(*) as total')
+                    ->whereYear('created_at', date('Y'))
+                    ->groupByRaw('EXTRACT(MONTH FROM created_at)')
+                    ->orderBy('bulan')
+                    ->get()
+                    ->pluck('total', 'bulan')
+                    ->toArray();
+                
+                // Data untuk chart - Penilaian per Bulan (SUDAH DIPERBAIKI UNTUK POSTGRESQL)
+                $penilaianPerBulan = \App\Models\Penilaian::selectRaw('EXTRACT(MONTH FROM created_at) as bulan, COUNT(*) as total')
+                    ->whereYear('created_at', date('Y'))
+                    ->groupByRaw('EXTRACT(MONTH FROM created_at)')
+                    ->orderBy('bulan')
+                    ->get()
+                    ->pluck('total', 'bulan')
+                    ->toArray();
+                
+                // Data untuk pie chart - Status Penilaian Atlet
+                $atletBelumDinilai = $totalAtlet - $atletLengkap;
+                $atletSebagian = \App\Models\Atlet::whereHas('penilaians')
+                    ->whereDoesntHave('penilaians', function($q) {
+                        $q->whereIn('kriteria_id', \App\Models\Kriteria::pluck('id'));
+                    }, '=', \App\Models\Kriteria::count())
+                    ->count();
+            @endphp
 
               <!-- Total Users -->
               <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border-gray-500">
