@@ -18,3 +18,5 @@ yarn-error.log
 /.vscode
 db pgsql
 pwd: sunkissed123.
+.vercel
+.env*
